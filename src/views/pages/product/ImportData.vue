@@ -24,17 +24,6 @@
               :v="$v.form.file"
             />
 
-            <InputText
-              textFloat="Email"
-              placeholder="Email"
-              type="text"
-              name="email"
-              isRequired
-              v-model="form.mail"
-              :isValidate="$v.form.mail.$error"
-              :v="$v.form.mail"
-            />
-
             <b-row class="mt-5">
               <b-col md="6">
                 <b-button href="/product" class="btn-details-set">CANCEL</b-button>
@@ -51,6 +40,52 @@
         </b-row>
       </b-container>
     </form>
+
+    <b-modal
+      id="AddEmailModal"
+      ref="AddEmailModal"
+      hide-header
+      hide-footer
+      no-close-on-backdrop
+      centered
+      body-class="p-4"
+    >
+      <div class="modal-header border-0 px-0 pt-0">
+        <h3 class="font-weight-bold">Add Email</h3>
+        <button
+          type="button"
+          aria-label="Close"
+          class="close"
+          @click="$bvModal.hide('AddEmailModal')"
+        >×</button>
+      </div>
+      <div>
+        <b-container class="p-0">
+          <b-row>
+            <b-col>
+              <p>Please enter your email , We will send import result to your email</p>
+
+              <InputText
+                textFloat="Email"
+                placeholder="Email"
+                type="text"
+                name="email"
+                isRequired
+                v-model="form.mail"
+                @onKeyup="handleChangeEmail"
+              />
+            </b-col>
+          </b-row>
+          <div class="text-center mt-3">
+            <b-button
+              class="btn btn-main"
+              :disabled="hasEmailorOnSubmit"
+              @click="submit"
+            >Submit</b-button>
+          </div>
+        </b-container>
+      </div>
+    </b-modal>
   </div>
 </template>
 
@@ -69,6 +104,7 @@ export default {
   data() {
     return {
       isDisable: true,
+      hasEmailorOnSubmit: false,
       importerror: false,
       error: true,
       filename: "",
@@ -80,7 +116,6 @@ export default {
   },
   validations: {
     form: {
-      mail: { required },
       file: { required }
     }
   },
@@ -88,6 +123,13 @@ export default {
     this.form.mail = VueCookies.get("username");
   },
   methods: {
+    handleChangeEmail() {
+      if (this.form.mail != "") {
+        this.hasEmailorOnSubmit = false;
+      } else {
+        this.hasEmailorOnSubmit = true;
+      }
+    },
     onFileChange(file) {
       this.filename = file.name;
       this.isDisable = false;
@@ -110,7 +152,10 @@ export default {
         return;
       }
 
-      this.isDisable = true;
+      this.$refs["AddEmailModal"].show();
+    },
+    submit: async function(id) {
+      this.hasEmailorOnSubmit = true;
 
       let data = await this.$callApi(
         "post",

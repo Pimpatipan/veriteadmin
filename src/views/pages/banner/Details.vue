@@ -9,7 +9,7 @@
         </b-row>
 
         <b-row class="no-gutters bg-white-border mt-4">
-          <b-col class="px-4 px-sm-5 py-4" v-if="isLoadingData">
+          <b-col class="px-4 px-sm-5 py-4 vh-100" v-if="isLoadingData">
             <img src="/img/loading.svg" class="loading" alt="loading" />
           </b-col>
           <b-col class="px-4 px-sm-5 py-4" v-else>
@@ -84,7 +84,9 @@
                   class="preview-box b-contain"
                   v-if="coverImgType == 1"
                   v-bind:style="{ 'background-image': 'url(' + showPreview + ')' }"
-                ></div>
+                >
+                  <img src="/img/loading.svg" class="loading" alt="loading" v-if="isLoadingImage" />
+                </div>
                 <div
                   class="preview-box position-relative p-0 embed-responsive embed-responsive-16by9 banner-video"
                   v-else
@@ -102,7 +104,7 @@
                   :fileName="form.banner.imageUrl"
                   v-model="form.banner.imageUrl"
                   name="thumbnail"
-                  text="*Please upload only file .png, .jpg size 1140 x 450 px and .mp4 less than 50 MB"
+                  text="*Please upload only file .png, .jpg size 1110 x 477 px and .mp4 less than 50 MB"
                   isRequired
                   v-on:onFileChange="onImageChange"
                   v-on:delete="deleteImage"
@@ -158,7 +160,6 @@
               </b-col>
               <b-col md="6" class="text-sm-right">
                 <button
-                  v-if="isEdit"
                   type="button"
                   @click="checkForm(0)"
                   :disabled="isDisable"
@@ -205,8 +206,10 @@ export default {
   data() {
     return {
       id: this.$route.params.id,
+      existId: "",
       isEdit: false,
       isLoadingData: false,
+      isLoadingImage: false,
       isDisable: false,
       isSuccess: false,
       imgModal: null,
@@ -214,6 +217,7 @@ export default {
       languageActive: 1,
       languageList: [],
       imageLogoLang: "",
+      images: "",
       coverImgType: 1,
       showVideo: "",
       showPreview: "",
@@ -293,7 +297,10 @@ export default {
         if (this.id > 0) {
           this.getDatas();
         } else {
-          window.location.href = "/banner";
+          this.form.banner.id = this.existId;
+          this.id = this.existId;
+          this.isEdit = true;
+          this.$router.push({ path: `/banner/details/${this.existId}` });
         }
       }
     },
@@ -340,35 +347,65 @@ export default {
           }
         }
       }
+
+      if (this.form.isSameLanguage) {
+        this.imageLogoLang = "";
+      } else {
+        var index = this.languageList
+          .map(function(x) {
+            return x.id;
+          })
+          .indexOf(this.languageActive);
+        this.imageLogoLang = this.languageList[index].imageUrl;
+      }
     },
     changeLanguage(id, index) {
       this.languageActive = id;
       this.imageLogoLang = this.languageList[index].imageUrl;
     },
     onImageChange(img) {
-      this.form.banner.imageUrl = img.name;
+      this.isLoadingImage = true;
+      this.isDisable = true;
 
       var reader = new FileReader();
       reader.readAsDataURL(img);
 
-      if (img.type == "video/mp4") {
-        this.coverImgType = 2;
-        const objectURL = URL.createObjectURL(img);
-        this.showPreview = objectURL;
+      reader.onload = async () => {
+        this.images = await this.saveImagetoDb(reader.result);
+        this.isLoadingImage = false;
+        this.isDisable = false;
 
-        var vid = this.$refs.videoRef;
-        if (vid != undefined) {
-          vid.load();
+        this.showPreview = this.images;
+        this.form.banner.imageUrl = this.images;
+
+        if (img.type == "video/mp4") {
+          this.coverImgType = 2;
+          this.form.banner.isVideo = true;
+          var vid = this.$refs.videoRef;
+          if (vid != undefined) {
+            vid.load();
+          }
+        } else {
+          this.coverImgType = 1;
+          this.form.banner.isVideo = false;
         }
-        reader.onload = () => {
-          this.form.imageBase64 = reader.result;
-        };
-      } else {
-        this.coverImgType = 1;
-        reader.onload = () => {
-          this.showPreview = reader.result;
-          this.form.imageBase64 = reader.result;
-        };
+      };
+    },
+    saveImagetoDb: async function(img) {
+      var imgData = {
+        base64: img
+      };
+
+      let data = await this.$callApi(
+        "post",
+        `${this.$baseUrl}/api/image/save`,
+        null,
+        this.$headers,
+        imgData
+      );
+
+      if (data.result == 1) {
+        return data.detail.url;
       }
     },
     deleteImage(value) {
@@ -411,6 +448,7 @@ export default {
         this.imgModal = "/img/icon-check-green.png";
         this.msgModal = data.message;
         this.isSuccess = true;
+        this.existId = data.detail.id;
       } else {
         this.imgModal = "/img/icon-unsuccess.png";
         this.msgModal = data.detail[0];
@@ -422,6 +460,7 @@ export default {
     useSameLanguage: async function() {
       Vue.nextTick(() => {
         if (this.form.isSameLanguage) {
+          this.imageLogoLang = "";
           this.form.banner.mainLanguageId = this.languageActive;
           let data = this.form.bannerTranslationList.filter(
             val => val.languageId == this.form.banner.mainLanguageId
@@ -440,6 +479,13 @@ export default {
             }
           }
         } else {
+          var index = this.languageList
+            .map(function(x) {
+              return x.id;
+            })
+            .indexOf(this.languageActive);
+          this.imageLogoLang = this.languageList[index].imageUrl;
+
           let data = this.form.bannerTranslationList.filter(
             val => val.languageId != this.form.banner.mainLanguageId
           );

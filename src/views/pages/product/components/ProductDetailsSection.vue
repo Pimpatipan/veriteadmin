@@ -2,7 +2,7 @@
   <div>
     <form class="form-box">
       <b-row class="no-gutters bg-white-border">
-        <b-col class="px-4 px-sm-5 py-4" v-if="isLoadingData">
+        <b-col class="px-4 px-sm-5 py-4 vh-100" v-if="isLoadingData">
           <img src="/img/loading.svg" class="loading" alt="loading" />
         </b-col>
 
@@ -111,8 +111,14 @@
                   :v="$v.productdetail.product.urlKey"
                   @onKeyup="onUrlkeyChange"
                 />
-                <a
+                <!-- <a
                   :href="'http://verite.dosetech.co/product/'+productdetail.product.urlKey"
+                  target="_blank"
+                  class="view-txt"
+                  v-if="id != 0"
+                >View</a>-->
+                <a
+                  :href="'https://www.verite.co.th/product/'+productdetail.product.urlKey"
                   target="_blank"
                   class="view-txt"
                   v-if="id != 0"
@@ -162,9 +168,7 @@
 
           <b-row>
             <b-col md="6">
-              <label
-                class="font-weight-bold label-text"
-              >Parent Category</label>
+              <label class="font-weight-bold label-text">Parent Category</label>
 
               <div class="store-type-box px-4 mb-4">
                 <!-- <div v-for="(item,index) in categorys" v-bind:key="index">
@@ -307,7 +311,7 @@
             </b-col>
             <b-col md="6">
               <label class="font-weight-bold main-label">Tag</label>
-              <div class="panel d-md-flex align-items-md-center ml-2 mt-2 mb-4">
+              <div class="panel d-md-flex align-items-md-center ml-2 mt-2 mb-3">
                 <b-form-checkbox
                   size="lg"
                   value="1"
@@ -320,6 +324,17 @@
                   class="ml-md-5 my-2 my-md-0"
                 >Hot</b-form-checkbox>
               </div>
+
+              <InputSelect
+                title="Unit"
+                name="unit"
+                v-model="productdetail.product.productUnitId"
+                isRequired
+                v-bind:options="unitList"
+                valueField="id"
+                textField="name"
+                @onDataChange="handleChangeUnit"
+              />
             </b-col>
           </b-row>
 
@@ -443,6 +458,34 @@
             :v="$v.productdetail.product.translationList"
           />
 
+          <div class="text-right mt-3" @click="clearDate" v-if="productdetail.product.display">
+            <span class="text-secondary text-underline pointer">Clear</span>
+          </div>
+
+          <b-row v-if="productdetail.product.display">
+            <b-col sm="6">
+              <label class="label-text">Valid from</label>
+              <datetime
+                v-model="productdetail.product.startDateDisplay"
+                placeholder="Please select date"
+                class="date-picker"
+                format="dd/MM/yyyy"
+                value-zone="local"
+              ></datetime>
+              <p class="text-danger" v-if="error">The Valid from date must be earlier than end date</p>
+            </b-col>
+            <b-col sm="6">
+              <label class="label-text">Valid to</label>
+              <datetime
+                v-model="productdetail.product.endDateDisplay"
+                placeholder="Please select date"
+                class="date-picker"
+                format="dd/MM/yyyy"
+                value-zone="local"
+              ></datetime>
+            </b-col>
+          </b-row>
+
           <b-row class="mt-4">
             <b-col sm="6" class="mb-4 mb-sm-0">
               <label class="font-weight-bold main-label">
@@ -482,42 +525,6 @@
             </b-col>
           </b-row>
 
-          <b-row class="mt-4" v-if="productdetail.product.display">
-            <b-col sm="6">
-              <label class="label-text">
-                Valid from
-                <span class="text-danger">*</span>
-              </label>
-              <datetime
-                v-model="productdetail.product.startDateDisplay"
-                placeholder="Please select date"
-                class="date-picker"
-                format="dd/MM/yyyy"
-              ></datetime>
-              <p
-                v-if="$v.productdetail.product.startDateDisplay.$error"
-                class="text-danger"
-              >This field can’t be empty</p>
-              <p class="text-danger" v-if="error">The Valid from date must be earlier than end date</p>
-            </b-col>
-            <b-col sm="6">
-              <label class="label-text">
-                Valid to
-                <span class="text-danger">*</span>
-              </label>
-              <datetime
-                v-model="productdetail.product.endDateDisplay"
-                placeholder="Please select date"
-                class="date-picker"
-                format="dd/MM/yyyy"
-              ></datetime>
-              <p
-                v-if="$v.productdetail.product.endDateDisplay.$error"
-                class="text-danger"
-              >This field can’t be empty</p>
-            </b-col>
-          </b-row>
-
           <b-row class="mt-5">
             <b-col md="6">
               <b-button
@@ -533,7 +540,6 @@
                 :disabled="isDisable"
                 @click="checkForm(0)"
                 type="button"
-                v-if="isEdit"
                 class="btn btn-success btn-details-set ml-md-2 text-uppercase"
               >Save</button>
               <button
@@ -568,6 +574,7 @@ import Vue from "vue";
 import TextEditor from "@/components/inputs/TextEditor";
 import InputTextArea from "@/components/inputs/InputTextArea";
 import SEOSection from "@/components/inputs/SEOSection";
+import InputSelect from "@/components/inputs/InputSelect";
 
 export default {
   name: "ProductDetailsDetails",
@@ -576,12 +583,14 @@ export default {
     ModalAlert,
     TextEditor,
     InputTextArea,
-    SEOSection
+    SEOSection,
+    InputSelect,
   },
   data() {
     return {
       id: this.$route.params.id,
       languageList: [],
+      existId: "",
       items: [],
       parentList: [],
       imageLogoLang: "",
@@ -591,18 +600,21 @@ export default {
       error: false,
       isEdit: false,
       imgModal: null,
+      isSuccess: false,
       msgModal: null,
       modalAlertShow: false,
       categorys: [
         {
-          categoryList: []
-        }
+          categoryList: [],
+        },
       ],
+      unitList: [],
       productdetail: {
         product: {
           id: 0,
           sortOrder: 0,
           price: 0.0,
+          productUnitId: 0,
           enabled: false,
           display: false,
           sku: null,
@@ -624,7 +636,7 @@ export default {
               metaKeyword: null,
               metaDescription: null,
               howToUse: null,
-              ingredient: null
+              ingredient: null,
             },
             {
               languageId: 2,
@@ -637,12 +649,12 @@ export default {
               metaKeyword: null,
               metaDescription: null,
               howToUse: null,
-              ingredient: null
-            }
+              ingredient: null,
+            },
           ],
-          selectCategory: []
-        }
-      }
+          selectCategory: [],
+        },
+      },
     };
   },
   validations: {
@@ -653,32 +665,45 @@ export default {
         barcode: { required },
         urlKey: { required },
         size: { required },
-        startDateDisplay: {
-          required: requiredIf(function() {
-            return this.productdetail.product.display;
-          })
-        },
-        endDateDisplay: {
-          required: requiredIf(function() {
-            return this.productdetail.product.display;
-          })
-        },
         translationList: {
           $each: {
             name: { required },
             shortDescription: { required },
             metaTitle: { required },
             metaKeyword: { required },
-            metaDescription: { required }
-          }
-        }
-      }
-    }
+            metaDescription: { required },
+          },
+        },
+      },
+    },
   },
-  created: async function() {
-    await this.getDatas();
+  created: async function () {
+    this.isLoadingData = true;
+    await this.getLanguage();
   },
   methods: {
+    getLanguage: async function () {
+      let languages = await this.$callApi(
+        "get",
+        `${this.$baseUrl}/api/language`,
+        null,
+        this.$headers,
+        null
+      );
+      if (languages.result == 1) {
+        this.$languages = languages.detail;
+        this.languageList = languages.detail;
+        this.changeLanguage(1, 0);
+        await this.getDatas();
+      }
+    },
+    handleChangeUnit: async function (value) {
+      this.productdetail.product.productUnitId = value;
+    },
+    clearDate() {
+      this.productdetail.product.startDateDisplay = null;
+      this.productdetail.product.endDateDisplay = null;
+    },
     addParent(ref) {
       this.parentList.push(ref);
     },
@@ -686,23 +711,28 @@ export default {
       var index = this.parentList.indexOf(ref);
       if (index !== -1) this.parentList.splice(index, 1);
     },
-    handleCloseModal: async function() {
+    handleCloseModal: async function () {
       if (this.flag == 1) {
         window.location.href = "/product";
       } else {
         if (this.id > 0) {
+          this.isLoadingData = true;
           this.getDatas();
         } else {
-          window.location.href = "/product";
+          this.productdetail.product.id = this.existId;
+          this.id = this.existId;
+          this.isEdit = true;
+          this.$router.push({ path: `/product/details/${this.existId}` });
         }
       }
     },
-    useSameLanguage: async function(flag) {
+    useSameLanguage: async function (flag) {
       Vue.nextTick(() => {
         if (this.productdetail.product.isSameLanguage) {
+          this.imageLogoLang = "";
           this.productdetail.product.mainLanguageId = this.languageActive;
           let data = this.productdetail.product.translationList.filter(
-            val => val.languageId == this.productdetail.product.mainLanguageId
+            (val) => val.languageId == this.productdetail.product.mainLanguageId
           );
 
           if (this.id == 0) {
@@ -735,8 +765,15 @@ export default {
             }
           }
         } else {
+          var index = this.languageList
+            .map(function (x) {
+              return x.id;
+            })
+            .indexOf(this.languageActive);
+          this.imageLogoLang = this.languageList[index].imageUrl;
+
           let data = this.productdetail.product.translationList.filter(
-            val => val.languageId != this.productdetail.product.mainLanguageId
+            (val) => val.languageId != this.productdetail.product.mainLanguageId
           );
           if (this.id == 0) {
             if (data.length == 1) {
@@ -754,7 +791,7 @@ export default {
         }
       });
     },
-    checkValidateTranslationList: async function() {
+    checkValidateTranslationList: async function () {
       let isError = false;
       this.languageList.forEach((element, index) => {
         if (!isError) {
@@ -773,17 +810,17 @@ export default {
         }
       });
     },
-    setMetaTitleandKeyword: function(name, index) {
+    setMetaTitleandKeyword: function (name, index) {
       this.productdetail.product.translationList[index].metaTitle = name;
       this.productdetail.product.translationList[index].metaKeyword = name;
       this.productdetail.product.urlKey = name
         .replace(/ /g, "-")
         .replace(/\//g, "");
     },
-    setMetaDescription: function(name, index) {
+    setMetaDescription: function (name, index) {
       this.productdetail.product.translationList[index].metaDescription = name;
     },
-    onUrlkeyChange: function(value) {
+    onUrlkeyChange: function (value) {
       this.productdetail.product.urlKey = this.productdetail.product.urlKey
         .replace(/ /g, "-")
         .replace(/\//g, "");
@@ -792,7 +829,7 @@ export default {
       this.languageActive = id;
       this.imageLogoLang = this.languageList[index].imageUrl;
     },
-    checkForm: async function(flag) {
+    checkForm: async function (flag) {
       if (this.productdetail.product.isSameLanguage) {
         await this.useSameLanguage();
       }
@@ -814,7 +851,7 @@ export default {
       this.flag = flag;
       this.submit();
     },
-    submit: async function() {
+    submit: async function () {
       this.isDisable = true;
 
       let data = await this.$callApi(
@@ -830,6 +867,7 @@ export default {
         this.imgModal = "/img/icon-check-green.png";
         this.msgModal = data.message;
         this.isSuccess = true;
+        this.existId = data.detail.id;
       } else {
         this.imgModal = "/img/icon-unsuccess.png";
         this.msgModal = data.detail[0];
@@ -838,21 +876,7 @@ export default {
 
       this.isDisable = false;
     },
-    getDatas: async function() {
-      this.isLoadingData = true;
-
-      let languages = await this.$callApi(
-        "get",
-        `${this.$baseUrl}/api/language`,
-        null,
-        this.$headers,
-        null
-      );
-      if (languages.result == 1) {
-        this.languageList = languages.detail;
-        this.changeLanguage(1, 0);
-      }
-
+    getDatas: async function () {
       let data = await this.$callApi(
         "get",
         `${this.$baseUrl}/api/product/productDetail/${this.id}`,
@@ -881,6 +905,21 @@ export default {
             60 * 60 * 24 * 30
           );
         }
+
+        if (this.productdetail.product.productUnitId == 0) {
+          this.productdetail.product.productUnitId = 1;
+        }
+
+        if (this.productdetail.product.isSameLanguage) {
+          this.imageLogoLang = "";
+        } else {
+          var index = this.languageList
+            .map(function (x) {
+              return x.id;
+            })
+            .indexOf(this.languageActive);
+          this.imageLogoLang = this.languageList[index].imageUrl;
+        }
       }
 
       let cat = await this.$callApi(
@@ -894,8 +933,20 @@ export default {
       if (cat.result == 1) {
         this.categorys = cat.detail;
       }
+
+      let unit = await this.$callApi(
+        "get",
+        `${this.$baseUrl}/api/product/unitList`,
+        null,
+        this.$headers,
+        null
+      );
+
+      if (cat.result == 1) {
+        this.unitList = unit.detail;
+      }
     },
-    isNumber: function(evt) {
+    isNumber: function (evt) {
       evt = evt ? evt : window.event;
       var charCode = evt.which ? evt.which : evt.keyCode;
       if (charCode > 31 && (charCode < 48 || charCode > 57)) {
@@ -904,7 +955,7 @@ export default {
         return true;
       }
     },
-    checkSubCategorychecked: function(index, val, mainId) {
+    checkSubCategorychecked: function (index, val, mainId) {
       let arrayFlag = false;
       let length = this.categorys[index].categoryList.length;
       let firstId = this.categorys[index].categoryList[0].id;
@@ -928,7 +979,7 @@ export default {
         }
       });
     },
-    checkSubCategoryLevel2checked: function(index, index2, val, mainId, root) {
+    checkSubCategoryLevel2checked: function (index, index2, val, mainId, root) {
       let arrayFlag = false;
       let length = this.categorys[index].categoryList[index2].categoryList
         .length;
@@ -962,7 +1013,7 @@ export default {
         }
       });
     },
-    deleteData: async function() {
+    deleteData: async function () {
       if (confirm("Are you sure you want to delete this data?") == true) {
         let data = await this.$callApi(
           "delete",
@@ -976,8 +1027,8 @@ export default {
           window.location.href = "/product";
         }
       }
-    }
-  }
+    },
+  },
 };
 </script>
 

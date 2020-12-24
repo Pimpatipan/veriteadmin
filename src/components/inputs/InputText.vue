@@ -39,7 +39,7 @@
         v-else-if="v.maxLength == false"
       >Please enter no more than {{v.$params.maxLength.max}} characters</span>
       <span class="text-error" v-else-if="v.decimal == false">Please enter number only</span>
-      <span class="text-error" v-else-if="v.minValue == false">Please enter number only</span>
+      <span class="text-error" v-else-if="v.minValue == false">The value must greater than 1</span>
       <span class="text-error" v-else-if="v.sameAsPassword == false">The password does not match</span>
     </div>
   </div>
@@ -128,7 +128,7 @@ export default {
 }
 .input-custom > label {
   color: #16274a;
-  font-size: 16px;
+  font-size: 17px;
   margin-bottom: 2px;
   font-weight: bold;
 }

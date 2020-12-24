@@ -9,7 +9,7 @@
         </b-row>
 
         <b-row class="no-gutters bg-white-border mt-4">
-          <b-col class="px-4 px-sm-5 py-4" v-if="isLoadingData">
+          <b-col class="px-4 px-sm-5 py-4 vh-100" v-if="isLoadingData">
             <img src="/img/loading.svg" class="loading" alt="loading" />
           </b-col>
           <b-col class="px-4 px-sm-5 py-4" v-else>
@@ -129,7 +129,6 @@
                   type="button"
                   @click="checkForm(0)"
                   :disabled="isDisable"
-                  v-if="isEdit"
                   class="btn btn-success btn-details-set ml-md-2 text-uppercase"
                 >Save</button>
                 <button
@@ -182,6 +181,7 @@ export default {
       imgModal: null,
       msgModal: null,
       id: this.$route.params.id,
+      existId: "",
       modalAlertShow: false,
       form: {
         bankAccount: {
@@ -244,7 +244,10 @@ export default {
         if (this.id > 0) {
           this.getDatas();
         } else {
-          window.location.href = "/bankaccount";
+          this.id = this.existId;
+          this.form.bankAccount.id = this.existId;
+          this.isEdit = true;
+          this.$router.push({ path: `/bankaccount/details/${this.existId}` });
         }
       }
     },
@@ -263,7 +266,7 @@ export default {
         this.languageList = languages.detail;
         this.changeLanguage(1, 0);
       }
-  
+
       let data = await this.$callApi(
         "get",
         `${this.$baseUrl}/api/BankAccount/${this.id}`,
@@ -279,6 +282,17 @@ export default {
 
         if (this.form.bankAccount.id > 0) {
           this.isEdit = true;
+        }
+
+        if (this.form.isSameLanguage) {
+          this.imageLogoLang = "";
+        } else {
+          var index = this.languageList
+            .map(function(x) {
+              return x.id;
+            })
+            .indexOf(this.languageActive);
+          this.imageLogoLang = this.languageList[index].imageUrl;
         }
       }
 
@@ -307,6 +321,7 @@ export default {
     useSameLanguage: async function() {
       Vue.nextTick(() => {
         if (this.form.isSameLanguage) {
+          this.imageLogoLang = "";
           this.form.bankAccount.mainLanguageId = this.languageActive;
           let data = this.form.bankAccountTranslationList.filter(
             val => val.languageId == this.form.bankAccount.mainLanguageId
@@ -325,6 +340,12 @@ export default {
             }
           }
         } else {
+          var index = this.languageList
+            .map(function(x) {
+              return x.id;
+            })
+            .indexOf(this.languageActive);
+          this.imageLogoLang = this.languageList[index].imageUrl;
           let data = this.form.bankAccountTranslationList.filter(
             val => val.languageId != this.form.bankAccount.mainLanguageId
           );
@@ -385,6 +406,7 @@ export default {
         this.imgModal = "/img/icon-check-green.png";
         this.msgModal = data.message;
         this.isSuccess = true;
+        this.existId = data.detail.id;
       } else {
         this.imgModal = "/img/icon-unsuccess.png";
         this.msgModal = data.detail[0];

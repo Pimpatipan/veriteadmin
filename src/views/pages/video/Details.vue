@@ -9,7 +9,7 @@
         </b-row>
 
         <b-row class="no-gutters bg-white-border mt-4">
-          <b-col class="px-4 px-sm-5 py-4" v-if="isLoadingData">
+          <b-col class="px-4 px-sm-5 py-4 vh-100" v-if="isLoadingData">
             <img src="/img/loading.svg" class="loading" alt="loading" />
           </b-col>
 
@@ -111,25 +111,84 @@
               </div>
             </div>
 
+            <b-row class="mb-3">
+              <b-col md="6">
+                <label class="label-text mb-2">Video Type</label>
+                <b-row class="mb-3 mb-sm-0">
+                  <b-col
+                    md="6"
+                    class="mb-1 mb-sm-0"
+                    v-for="(item,index) in form.videoType"
+                    v-bind:key="index"
+                  >
+                    <b-form-radio
+                      name="some-type"
+                      v-model="form.video.videoTypeId"
+                      :value="item.id"
+                      @change="onChangeVideoType"
+                    >{{item.name}}</b-form-radio>
+                  </b-col>
+                </b-row>
+              </b-col>
+            </b-row>
+
+            <b-row class="mb-3">
+              <b-col>
+                <InputText
+                  textFloat="Youtube Link"
+                  placeholder="ex. https://www.youtube.com/watch?v=yWPJg1ZW3P0, http://youtu.be/yWPJg1ZW3P0"
+                  type="text"
+                  name="link"
+                  v-model="form.video.videoUrl"
+                  :v="$v.form.video.videoUrl"
+                  v-if="form.video.videoTypeId == 2"
+                  isRequired
+                  class="mt-1"
+                />
+                <span
+                  class="view-txt"
+                  @click="previewYtVideo"
+                  v-if="form.video.videoTypeId == 2"
+                >Preview</span>
+                <p class="text-danger" v-if="!isYtLink">Please enter a valid youtube link</p>
+              </b-col>
+            </b-row>
+
             <b-row>
               <b-col md="6">
-                <UploadFile
-                  textFloat="Video File"
-                  placeholder="Please choose file"
-                  format="video"
-                  :fileName="form.video.videoUrl"
-                  v-model="form.video.videoUrl"
-                  name="video"
-                  text="*Please upload only file .mp4 size less than 50 MB"
-                  isRequired
-                  v-on:onFileChange="onVideoChange"
-                  v-on:delete="deleteVideo"
-                  :v="$v.form.video.videoUrl"
-                />
-                <div class="preview-box position-relative video-thumbnail">
-                  <video ref="videoRef" class="w-100 video-box" controls>
-                    <source :src="showVideo" type="video/mp4" />
-                  </video>
+                <div>
+                  <UploadFile
+                    textFloat="Video File"
+                    placeholder="Please choose file"
+                    format="video"
+                    :fileName="form.video.videoUrl"
+                    v-model="form.video.videoUrl"
+                    name="video"
+                    text="*Please upload only file .mp4 size less than 50 MB"
+                    isRequired
+                    v-on:onFileChange="onVideoChange"
+                    v-on:delete="deleteVideo"
+                    :v="$v.form.video.videoUrl"
+                    v-if="form.video.videoTypeId == 1"
+                  />
+
+                  <label class="label-text mb-2" v-if="form.video.videoTypeId == 2">Youtube Video</label>
+                  <div
+                    class="preview-box position-relative video-thumbnail"
+                    :class="{'yt-box':form.video.videoTypeId == 2}"
+                  >
+                    <video
+                      ref="videoRef"
+                      class="w-100 video-box"
+                      controls
+                      v-if="form.video.videoTypeId == 1"
+                    >
+                      <source :src="showVideo" type="video/mp4" />
+                    </video>
+
+                    <iframe width="100%" height="300" :src="showVideo" v-else></iframe>
+                    <img src="/img/loading.svg" class="loading" alt="loading" v-if="isLoadingVideo" />
+                  </div>
                 </div>
               </b-col>
               <b-col md="6">
@@ -145,47 +204,16 @@
                   v-on:onFileChange="onImageChange"
                   v-on:delete="deleteImage"
                   :v="$v.form.video.coverImageUrl"
+                  v-if="form.video.videoTypeId == 1"
                 />
+
+                <!-- <label class="label-text mb-2" v-if="form.video.videoTypeId == 2">Youtube Thumbnail</label> -->
                 <div
                   class="preview-box video-thumbnail"
-                  v-bind:style="{ 'background-image': 'url(' + showPreview + ')' }"
-                ></div>
-              </b-col>
-            </b-row>
-
-            <b-row>
-              <b-col md="6">
-                <div v-for="(item, index) in form.videoTranslationList" v-bind:key="index">
-                  <div v-bind:class="[ languageActive == item.languageId ? '' : 'd-none' ]">
-                    <InputText
-                      textFloat="Video Alt Tag"
-                      placeholder="Video Alt Tag"
-                      type="text"
-                      name="urlkey"
-                      isRequired
-                      v-model="item.altTag"
-                      :img="imageLogoLang"
-                      :isValidate="$v.form.videoTranslationList.$each.$iter[index].altTag.$error"
-                      :v="$v.form.videoTranslationList.$each.$iter[index].altTag"
-                    />
-                  </div>
-                </div>
-              </b-col>
-              <b-col md="6">
-                <div v-for="(item, index) in form.videoTranslationList" v-bind:key="index">
-                  <div v-bind:class="[ languageActive == item.languageId ? '' : 'd-none' ]">
-                    <InputText
-                      textFloat="Video Thumbnail Alt Tag"
-                      placeholder="Video Thumbnail Alt Tag"
-                      type="text"
-                      name="urlkey"
-                      isRequired
-                      v-model="item.coverImageAltTag"
-                      :img="imageLogoLang"
-                      :isValidate="$v.form.videoTranslationList.$each.$iter[index].coverImageAltTag.$error"
-                      :v="$v.form.videoTranslationList.$each.$iter[index].coverImageAltTag"
-                    />
-                  </div>
+                  :style="{ backgroundImage: `url('${showPreview}')` }"
+                   v-if="form.video.videoTypeId == 1"
+                >
+                  <img src="/img/loading.svg" class="loading" alt="loading" v-if="isLoadingImage" />
                 </div>
               </b-col>
             </b-row>
@@ -251,7 +279,7 @@
                   v-if="isEdit"
                   :disabled="isDisable"
                 >REMOVE</b-button>
-                <b-button href="/video" class="btn-details-set " :disabled="isDisable">CANCEL</b-button>
+                <b-button href="/video" class="btn-details-set" :disabled="isDisable">CANCEL</b-button>
               </b-col>
               <b-col md="6" class="text-sm-right">
                 <button
@@ -259,7 +287,6 @@
                   class="btn btn-success btn-details-set ml-md-2 text-uppercase"
                   @click="checkForm(0)"
                   :disabled="isDisable"
-                  v-if="isEdit"
                 >Save</button>
                 <button
                   type="button"
@@ -291,7 +318,7 @@ import InputTextArea from "@/components/inputs/InputTextArea";
 import UploadFile from "@/components/inputs/UploadFile";
 import TextEditor from "@/components/inputs/TextEditor";
 import SEOSection from "@/components/inputs/SEOSection";
-import { required } from "vuelidate/lib/validators";
+import { required, requiredIf } from "vuelidate/lib/validators";
 import Vue from "vue";
 import ModalAlert from "@/components/ModalAlert";
 
@@ -303,15 +330,19 @@ export default {
     UploadFile,
     TextEditor,
     SEOSection,
-    ModalAlert
+    ModalAlert,
   },
   data() {
     return {
       id: this.$route.params.id,
+      existId: "",
+      isLoadingImage: false,
+      isLoadingVideo: false,
+      images: "",
       isEdit: false,
       isDisable: false,
       isSuccess: false,
-       isLoadingData: false,
+      isLoadingData: false,
       imgModal: null,
       msgModal: null,
       languageActive: 1,
@@ -321,6 +352,7 @@ export default {
       showVideo: "",
       modalAlertShow: false,
       dataForAlert: null,
+      isYtLink: true,
       form: {
         video: {
           id: 0,
@@ -329,7 +361,7 @@ export default {
           coverImageUrl: null,
           sortOrder: 0,
           urlKey: null,
-          mainLanguageId: 0
+          mainLanguageId: 0,
         },
         isSameLanguage: false,
         videoTranslationList: [
@@ -343,7 +375,7 @@ export default {
             shortDescription: null,
             metaTitle: null,
             metaKeyword: null,
-            metaDescription: null
+            metaDescription: null,
           },
           {
             videoId: 0,
@@ -355,13 +387,13 @@ export default {
             shortDescription: null,
             metaTitle: null,
             metaKeyword: null,
-            metaDescription: null
-          }
+            metaDescription: null,
+          },
         ],
         videoHighlight: false,
         thumbnailImageBase64: null,
-        videoBase64: null
-      }
+        videoBase64: null,
+      },
     };
   },
   validations: {
@@ -369,7 +401,11 @@ export default {
       video: {
         urlKey: { required },
         videoUrl: { required },
-        coverImageUrl: { required }
+        coverImageUrl: {
+          required: requiredIf(function () {
+            return this.form.video.videoTypeId == 1;
+          }),
+        },
       },
       videoTranslationList: {
         $each: {
@@ -379,17 +415,15 @@ export default {
           metaTitle: { required },
           metaKeyword: { required },
           metaDescription: { required },
-          altTag: { required },
-          coverImageAltTag: { required }
-        }
-      }
-    }
+        },
+      },
+    },
   },
-  created: async function() {
+  created: async function () {
     await this.getDatas();
   },
   methods: {
-    isNumber: function(evt) {
+    isNumber: function (evt) {
       evt = evt ? evt : window.event;
       var charCode = evt.which ? evt.which : evt.keyCode;
       if (charCode > 31 && (charCode < 48 || charCode > 57)) {
@@ -398,27 +432,32 @@ export default {
         return true;
       }
     },
-    handleCloseModal: function() {
+    handleCloseModal: function () {
       if (this.flag == 1) {
         window.location.href = "/video";
       } else {
         if (this.id > 0) {
           this.getDatas();
         } else {
-          window.location.href = "/video";
+          this.form.video.id = this.existId;
+          this.id = this.existId;
+          this.isEdit = true;
+          this.$router.push({ path: `/video/details/${this.existId}` });
         }
       }
     },
-    changeBlogHighlight: function(value) {
+    changeBlogHighlight: function (value) {
       this.form.videoHighlight = value;
     },
-    changeSameLang: function(value) {
+    changeSameLang: function (value) {
       this.form.isSameLanguage = value;
     },
-    onUrlkeyChange: function(value) {
-      this.form.video.urlKey = this.form.video.urlKey.replace(/ /g, "-").replace(/\//g, '');
+    onUrlkeyChange: function (value) {
+      this.form.video.urlKey = this.form.video.urlKey
+        .replace(/ /g, "-")
+        .replace(/\//g, "");
     },
-    getDatas: async function() {
+    getDatas: async function () {
       this.isLoadingData = true;
 
       let languages = await this.$callApi(
@@ -444,42 +483,127 @@ export default {
         this.form = data.detail;
         this.isLoadingData = false;
         this.$v.form.$reset();
-        
+
         if (this.form.video.id > 0) {
           this.isEdit = true;
           this.form.videoBase64 = "";
           this.form.thumbnailImageBase64 = "";
-          this.showPreview = this.form.video.coverImageUrl;
           this.showVideo = this.form.video.videoUrl;
-          var vid = this.$refs.videoRef;
-          vid.load();
+          if (this.form.video.videoTypeId == 1) {
+            this.showPreview = this.form.video.coverImageUrl;
+            var vid = this.$refs.videoRef;
+            vid.load();
+          } else {
+            await this.setYtVideo();
+            await this.setYtImg();
+          }
+        }
+
+        if (this.form.isSameLanguage) {
+          this.imageLogoLang = "";
+        } else {
+          var index = this.languageList
+            .map(function (x) {
+              return x.id;
+            })
+            .indexOf(this.languageActive);
+          this.imageLogoLang = this.languageList[index].imageUrl;
         }
       }
+    },
+    setYtImg() {
+      var a = this.form.video.videoUrl.split("/").pop();
+      this.showPreview = "https://i.ytimg.com/vi/" + a + "/0.jpg";
+    },
+    setYtVideo() {
+      var x = this.form.video.videoUrl.indexOf("embed");
+      var a = this.form.video.videoUrl.split("=").pop();
+      var b = this.form.video.videoUrl.split("/").pop();
+      if (x == -1) {
+        if (this.form.video.videoUrl.includes("youtube")) {
+          this.showVideo = "https://www.youtube.com/embed/" + a + "";
+          this.form.video.videoUrl = "https://www.youtube.com/embed/" + a + "";
+        } else {
+          this.showVideo = "https://www.youtube.com/embed/" + b + "";
+          this.form.video.videoUrl = "https://www.youtube.com/embed/" + b + "";
+        }
+      }
+    },
+    previewYtVideo: async function () {
+      var validLink = this.form.video.videoUrl;
+
+      if (
+        validLink.indexOf("youtube") != -1 ||
+        validLink.indexOf("youtu.be") != -1
+      ) {
+        this.isYtLink = true;
+        await this.setYtVideo();
+        await this.setYtImg();
+      } else {
+        this.isYtLink = false;
+        return;
+      }
+    },
+    onChangeVideoType() {
+      this.form.video.coverImageUrl = null;
+      this.form.video.videoUrl = null;
+      this.showPreview = null;
+      this.showVideo = null;
     },
     changeLanguage(id, index) {
       this.languageActive = id;
       this.imageLogoLang = this.languageList[index].imageUrl;
     },
     onImageChange(img) {
-      this.form.video.coverImageUrl = img.name;
+      this.isLoadingImage = true;
+      this.isDisable = true;
+
       var reader = new FileReader();
       reader.readAsDataURL(img);
-      reader.onload = () => {
-        this.showPreview = reader.result;
-        this.form.thumbnailImageBase64 = reader.result;
+
+      reader.onload = async () => {
+        this.images = await this.saveImagetoDb(reader.result);
+        this.isLoadingImage = false;
+        this.isDisable = false;
+        this.showPreview = this.images;
+        this.form.video.coverImageUrl = this.images;
       };
     },
     onVideoChange(video) {
-      this.form.video.videoUrl = video.name;
+      this.isLoadingVideo = true;
+      this.isDisable = true;
+
       var reader = new FileReader();
       reader.readAsDataURL(video);
-      const objectURL = URL.createObjectURL(video);
-      this.showVideo = objectURL;
-      var vid = this.$refs.videoRef;
-      vid.load();
-      reader.onload = () => {
-        this.form.videoBase64 = reader.result;
+
+      reader.onload = async () => {
+        this.images = await this.saveImagetoDb(reader.result);
+        this.isLoadingVideo = false;
+        this.isDisable = false;
+
+        this.showVideo = this.images;
+        this.form.video.videoUrl = this.images;
+
+        var vid = this.$refs.videoRef;
+        vid.load();
       };
+    },
+    saveImagetoDb: async function (img) {
+      var imgData = {
+        base64: img,
+      };
+
+      let data = await this.$callApi(
+        "post",
+        `${this.$baseUrl}/api/image/save`,
+        null,
+        this.$headers,
+        imgData
+      );
+
+      if (data.result == 1) {
+        return data.detail.url;
+      }
     },
     deleteImage(value) {
       this.form.video.coverImageUrl = null;
@@ -493,7 +617,7 @@ export default {
       var vid = this.$refs.videoRef;
       vid.load();
     },
-    setMetaTitleandKeyword: function(name, index) {
+    setMetaTitleandKeyword: function (name, index) {
       this.form.videoTranslationList[index].metaTitle = name;
       this.form.videoTranslationList[index].metaKeyword = name;
       this.form.video.urlKey = name.replace(/ /g, "-").replace(/\//g, "");
@@ -503,10 +627,10 @@ export default {
         "-"
       );
     },
-    setMetaDescription: function(name, index) {
+    setMetaDescription: function (name, index) {
       this.form.videoTranslationList[index].metaDescription = name;
     },
-    checkForm: async function(flag) {
+    checkForm: async function (flag) {
       if (this.form.isSameLanguage) {
         await this.useSameLanguage();
       }
@@ -517,9 +641,26 @@ export default {
       }
       this.modalAlertShow = false;
       this.flag = flag;
+
+      if (this.form.video.videoTypeId == 2) {
+        var validLink = this.form.video.videoUrl;
+
+        if (
+          validLink.indexOf("youtube") != -1 ||
+          validLink.indexOf("youtu.be") != -1
+        ) {
+          this.isYtLink = true;
+          await this.setYtVideo();
+          await this.setYtImg();
+        } else {
+          this.isYtLink = false;
+          return;
+        }
+      }
+
       this.submit();
     },
-    submit: async function() {
+    submit: async function () {
       this.isDisable = true;
 
       let data = await this.$callApi(
@@ -535,6 +676,7 @@ export default {
         this.imgModal = "/img/icon-check-green.png";
         this.msgModal = data.message;
         this.isSuccess = true;
+        this.existId = data.detail.id;
       } else {
         this.imgModal = "/img/icon-unsuccess.png";
         this.msgModal = data.detail[0];
@@ -543,12 +685,13 @@ export default {
 
       this.isDisable = false;
     },
-    useSameLanguage: async function() {
+    useSameLanguage: async function () {
       Vue.nextTick(() => {
         if (this.form.isSameLanguage) {
+          this.imageLogoLang = "";
           this.form.video.mainLanguageId = this.languageActive;
           let data = this.form.videoTranslationList.filter(
-            val => val.languageId == this.form.video.mainLanguageId
+            (val) => val.languageId == this.form.video.mainLanguageId
           );
 
           if (this.id == 0) {
@@ -577,8 +720,15 @@ export default {
             }
           }
         } else {
+          var index = this.languageList
+            .map(function (x) {
+              return x.id;
+            })
+            .indexOf(this.languageActive);
+          this.imageLogoLang = this.languageList[index].imageUrl;
+
           let data = this.form.videoTranslationList.filter(
-            val => val.languageId != this.form.video.mainLanguageId
+            (val) => val.languageId != this.form.video.mainLanguageId
           );
           if (this.id == 0) {
             if (data.length == 1) {
@@ -596,7 +746,7 @@ export default {
         }
       });
     },
-    checkValidateTranslationList: async function() {
+    checkValidateTranslationList: async function () {
       let isError = false;
       this.languageList.forEach((element, index) => {
         if (!isError) {
@@ -612,7 +762,7 @@ export default {
         }
       });
     },
-    deleteData: async function() {
+    deleteData: async function () {
       if (confirm("Are you sure you want to delete this data?") == true) {
         let data = await this.$callApi(
           "delete",
@@ -626,8 +776,8 @@ export default {
           window.location.href = "/video";
         }
       }
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -639,5 +789,15 @@ export default {
   -moz-transform: translateX(-50%) translateY(-50%);
   -webkit-transform: translateX(-50%) translateY(-50%);
   transform: translateX(-50%) translateY(-50%);
+}
+
+.view-txt {
+  position: absolute;
+  right: 15px;
+  top: 0;
+  text-decoration: underline;
+  color: #707070;
+  z-index: 1;
+  cursor: pointer;
 }
 </style>

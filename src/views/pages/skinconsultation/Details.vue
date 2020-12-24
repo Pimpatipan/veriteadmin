@@ -9,7 +9,7 @@
         </b-row>
 
         <b-row class="no-gutters bg-white-border mt-4">
-          <b-col class="px-4 px-sm-5 py-4" v-if="isLoadingData">
+          <b-col class="px-4 px-sm-5 py-4 vh-100" v-if="isLoadingData">
             <img src="/img/loading.svg" class="loading" alt="loading" />
           </b-col>
 
@@ -225,13 +225,22 @@
                       <div class="tag-box tb-hot" v-if="data.item.isHot">Hot</div>
                     </div>
 
-                    <p class="mb-0 nobreak two-lines">{{data.item.name}}</p>
+                    <router-link :to="'/product/details/'+data.item.id">
+                      <span class="mb-0 nobreak two-lines">{{data.item.name}}</span>
+                    </router-link>
                   </div>
                 </template>
                 <template v-slot:cell(price)="data">
-                  <div>
-                    <p class="m-0">{{ data.item.price | numeral('0,0.00') }}</p>
-                  </div>
+                  <p
+                    class="m-0"
+                    v-if="data.item.advancePrice > 0"
+                    style=" text-decoration: line-through"
+                  >{{data.item.price | numeral('0,0.00')}}</p>
+                  <p
+                    class="m-0"
+                    v-if="data.item.advancePrice == 0"
+                  >{{data.item.price | numeral('0,0.00')}}</p>
+                  <p class="m-0 text-danger" v-else>{{data.item.advancePrice | numeral('0,0.00')}}</p>
                 </template>
                 <template v-slot:cell(id)="data">
                   <div class="d-flex justify-content-center">
@@ -291,7 +300,6 @@
               <b-col md="6" class="text-sm-right">
                 <button
                   type="button"
-                  v-if="isEdit"
                   @click="checkForm(0)"
                   :disabled="isDisable"
                   class="btn btn-success btn-details-set ml-md-2 text-uppercase"
@@ -359,7 +367,9 @@
                       <div class="tag-box tb-hot" v-if="data.item.isHot">Hot</div>
                     </div>
 
-                    <p class="mb-0 nobreak two-lines">{{data.item.name}}</p>
+                    <router-link :to="'/product/details/'+data.item.id">
+                      <span class="mb-0 nobreak two-lines">{{data.item.name}}</span>
+                    </router-link>
                   </div>
                 </template>
                 <template v-slot:cell(price)="data">
@@ -433,6 +443,7 @@ export default {
       languageList: [],
       productlistitems: [],
       productitems: [],
+      existId: "",
       isProductInSkinConsults: true,
       isLoadingData: false,
       pageOptions: [
@@ -472,12 +483,12 @@ export default {
       productlistfields: [
         {
           key: "ids",
-          label: ""
+          label: "",
         },
         {
           key: "imageUrl",
           label: "Thumbnail",
-          class: "w-100px"
+          class: "w-50px"
         },
         {
           key: "name",
@@ -488,7 +499,7 @@ export default {
         {
           key: "price",
           label: "Price",
-          class: "w-100px"
+          class: "text-right"
         },
         {
           key: "id",
@@ -586,7 +597,12 @@ export default {
         if (this.id > 0) {
           this.getDatas();
         } else {
-          window.location.href = "/skinconsultation";
+          this.form.skinConsult.id = this.existId;
+          this.id = this.existId;
+          this.isEdit = true;
+          this.$router.push({
+            path: `/skinconsultation/details/${this.existId}`
+          });
         }
       }
     },
@@ -628,6 +644,17 @@ export default {
         if (this.id > 0) {
           this.isEdit = true;
           this.showPreview = this.form.skinConsult.imageUrl;
+        }
+
+        if (this.form.skinConsult.isSameLanguage) {
+          this.imageLogoLang = "";
+        } else {
+          var index = this.languageList
+            .map(function(x) {
+              return x.id;
+            })
+            .indexOf(this.languageActive);
+          this.imageLogoLang = this.languageList[index].imageUrl;
         }
       }
     },
@@ -686,6 +713,7 @@ export default {
     useSameLanguage: async function() {
       Vue.nextTick(() => {
         if (this.form.skinConsult.isSameLanguage) {
+          this.imageLogoLang = "";
           this.form.skinConsult.mainLanguageId = this.languageActive;
           let data = this.form.skinConsult.translationList.filter(
             val => val.languageId == this.form.skinConsult.mainLanguageId
@@ -709,6 +737,13 @@ export default {
             }
           }
         } else {
+          var index = this.languageList
+            .map(function(x) {
+              return x.id;
+            })
+            .indexOf(this.languageActive);
+          this.imageLogoLang = this.languageList[index].imageUrl;
+
           let data = this.form.skinConsult.translationList.filter(
             val => val.languageId != this.form.skinConsult.mainLanguageId
           );
@@ -771,6 +806,7 @@ export default {
         this.imgModal = "/img/icon-check-green.png";
         this.msgModal = data.message;
         this.isSuccess = true;
+        this.existId = data.detail.id;
       } else {
         this.imgModal = "/img/icon-unsuccess.png";
         this.msgModal = data.detail[0];

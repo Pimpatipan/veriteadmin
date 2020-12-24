@@ -95,7 +95,6 @@ export default {
   created: function() {
     setTimeout(() => {
       this.reInit();
-      //console.log(123);
     }, 1000);
   }
 };

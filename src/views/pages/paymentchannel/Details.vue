@@ -9,11 +9,11 @@
         </b-row>
 
         <b-row class="no-gutters bg-white-border mt-4">
-          <b-col class="px-4 px-sm-5 py-4" v-if="isLoadingData">
+          <b-col class="px-4 px-sm-5 py-4 vh-100" v-if="isLoadingData">
             <img src="/img/loading.svg" class="loading" alt="loading" />
           </b-col>
           <b-col class="px-4 px-sm-5 py-4" v-else>
-           <b-row class="pl-1 my-3">
+            <b-row class="pl-1 my-3">
               <b-col cols="6">
                 <div class="panel d-flex align-items-md-center">
                   <b-form-checkbox
@@ -114,7 +114,7 @@
               </b-col>
             </b-row>
 
-             <b-row class="mt-5">
+            <b-row class="mt-5">
               <b-col md="6">
                 <b-button
                   class="btn btn-danger btn-details-set mr-md-2"
@@ -122,7 +122,11 @@
                   @click="deleteData()"
                   v-if="isEdit"
                 >REMOVE</b-button>
-                <b-button href="/paymentchannel" :disabled="isDisable" class="btn-details-set">CANCEL</b-button>
+                <b-button
+                  href="/paymentchannel"
+                  :disabled="isDisable"
+                  class="btn-details-set"
+                >CANCEL</b-button>
               </b-col>
               <b-col md="6" class="text-sm-right">
                 <button
@@ -259,7 +263,7 @@ export default {
         this.changeLanguage(1, 0);
       }
 
-       let data = await this.$callApi(
+      let data = await this.$callApi(
         "get",
         `${this.$baseUrl}/api/paymentChannel/${this.id}`,
         null,
@@ -275,6 +279,17 @@ export default {
         if (this.form.paymentType.id > 0) {
           this.isEdit = true;
           this.showPreview = this.form.paymentType.imageUrl;
+        }
+
+        if (this.form.paymentType.isSameLanguage) {
+          this.imageLogoLang = "";
+        } else {
+          var index = this.languageList
+            .map(function(x) {
+              return x.id;
+            })
+            .indexOf(this.languageActive);
+          this.imageLogoLang = this.languageList[index].imageUrl;
         }
       }
     },
@@ -319,6 +334,7 @@ export default {
     useSameLanguage: async function() {
       Vue.nextTick(() => {
         if (this.form.paymentType.isSameLanguage) {
+          this.imageLogoLang = "";
           this.form.paymentType.mainLanguageId = this.languageActive;
           let data = this.form.paymentType.translationList.filter(
             val => val.languageId == this.form.paymentType.mainLanguageId
@@ -336,6 +352,13 @@ export default {
             }
           }
         } else {
+          var index = this.languageList
+            .map(function(x) {
+              return x.id;
+            })
+            .indexOf(this.languageActive);
+          this.imageLogoLang = this.languageList[index].imageUrl;
+
           let data = this.form.paymentType.translationList.filter(
             val => val.languageId != this.form.paymentType.mainLanguageId
           );

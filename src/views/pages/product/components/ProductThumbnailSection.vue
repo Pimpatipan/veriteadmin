@@ -2,9 +2,9 @@
   <div>
     <form class="form-box">
       <b-row class="no-gutters bg-white-border">
-        <b-col class="px-4 px-sm-5 py-4" v-if="isLoadingData">
-            <img src="/img/loading.svg" class="loading" alt="loading" />
-          </b-col>
+        <b-col class="px-4 px-sm-5 py-4 vh-100" v-if="isLoadingData">
+          <img src="/img/loading.svg" class="loading" alt="loading" />
+        </b-col>
 
         <b-col class="px-4 px-sm-5 py-4" v-else>
           <b-row class="mt-4">
@@ -14,7 +14,7 @@
                 placeholder="Please choose file"
                 format="image"
                 name="thumbnail"
-                text="*Please upload only file .png, .jpg size 1100 x 1100 px and less than 10 MB"
+                text="*Please upload only file .png, .jpg less than 10 MB"
                 :fileName="thumbnails.thumbnail.imageUrl"
                 v-model="thumbnails.thumbnail.imageUrl"
                 v-on:onFileChange="onImageChange"
@@ -35,7 +35,7 @@
                 placeholder="Please choose file"
                 format="image"
                 name="thumbnailhover"
-                text="*Please upload only file .png, .jpg size 1100 x 1100 px and less than 10 MB"
+                text="*Please upload only file .png, .jpg less than 10 MB"
                 :fileName="thumbnails.thumbnail.hoverImageUrl"
                 v-model="thumbnails.thumbnail.hoverImageUrl"
                 v-on:onFileChange="onImageHoverChange"
@@ -113,7 +113,6 @@
                 class="btn btn-success btn-details-set ml-md-2 text-uppercase"
                 :disabled="isDisable"
                 @click="checkThumbnail(0)"
-                v-if="id != 0"
               >Save</button>
               <button
                 type="button"
@@ -294,6 +293,7 @@ export default {
       languageActive: 1,
       isDisable: false,
       images: "",
+      existId: "",
       isAdd: false,
       isEdit: false,
       showProductImage: "",
@@ -365,9 +365,12 @@ export default {
     }
   },
   created: async function() {
-    if (this.id != 0) {
-      await this.getThumbnailData();
-    }
+    setTimeout(async () => {
+      if (this.id != 0) {
+        this.isLoadingData = true;
+        await this.getThumbnailData();
+      }
+    }, 3000);
   },
   methods: {
     handleCloseModal: async function() {
@@ -375,25 +378,16 @@ export default {
         window.location.href = "/product";
       } else {
         if (this.id > 0) {
+          this.isLoadingData = true;
           this.getThumbnailData();
         } else {
-          window.location.href = "/product";
+          this.id = this.existId;
+          if (this.$route.params.id != 0) this.getThumbnailData();
         }
       }
     },
     getThumbnailData: async function() {
-       this.isLoadingData = true;
-
-      let languages = await this.$callApi(
-        "get",
-        `${this.$baseUrl}/api/language`,
-        null,
-        this.$headers,
-        null
-      );
-      if (languages.result == 1) {
-        this.languageList = languages.detail;
-      }
+      this.languageList = this.$languages;
 
       let thumbnailData = await this.$callApi(
         "get",
@@ -416,9 +410,11 @@ export default {
       this.modalAlertShow = false;
       this.flag = flag;
 
-      if (this.id == 0) {
-        this.$refs["modalFail"].show();
-        return;
+      if (this.$route.params.id == 0) {
+        if (this.id == 0) {
+          this.$refs["modalFail"].show();
+          return;
+        }
       }
 
       this.$v.thumbnails.$touch();
@@ -430,6 +426,9 @@ export default {
     },
     saveThumbnail: async function() {
       this.isDisable = true;
+
+      if (this.$route.params.id != 0)
+        this.thumbnails.thumbnail.productId = this.$route.params.id;
 
       let data = await this.$callApi(
         "post",
@@ -444,6 +443,7 @@ export default {
         this.imgModal = "/img/icon-check-green.png";
         this.msgModal = data.message;
         this.isSuccess = true;
+        this.existId = this.$route.params.id;
       } else {
         this.imgModal = "/img/icon-unsuccess.png";
         this.msgModal = data.detail[0];
@@ -548,6 +548,7 @@ export default {
       this.clearModal();
       this.isAdd = true;
       this.isSameLanguageModal = true;
+      this.imageLogoLangModal = "";
       this.$v.thumbnailmodal.$reset();
       this.$refs["addThumbnail"].show();
     },
@@ -573,11 +574,23 @@ export default {
         this.isSameLanguageModal = false;
       }
 
+      if (this.isSameLanguageModal) {
+        this.imageLogoLangModal = "";
+      } else {
+        var index = this.languageList
+          .map(function(x) {
+            return x.id;
+          })
+          .indexOf(this.languageActiveModal);
+        this.imageLogoLangModal = this.languageList[index].imageUrl;
+      }
+
       this.$refs["addThumbnail"].show();
     },
     useSameLanguageModal: async function() {
       Vue.nextTick(() => {
         if (this.isSameLanguageModal) {
+          this.imageLogoLangModal = "";
           let data = this.thumbnailmodal.translation.filter(
             val => val.languageId == this.languageActiveModal
           );
@@ -595,6 +608,13 @@ export default {
           }
           //}
         } else {
+          var index = this.languageList
+            .map(function(x) {
+              return x.id;
+            })
+            .indexOf(this.languageActive);
+          this.imageLogoLangModal = this.languageList[index].imageUrl;
+
           let data = this.thumbnailmodal.translation.filter(
             val => val.languageId != this.languageActiveModal
           );

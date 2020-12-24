@@ -9,7 +9,7 @@
         </b-row>
 
         <b-row class="no-gutters bg-white-border mt-4">
-          <b-col class="px-4 px-sm-5 py-4" v-if="isLoadingData">
+          <b-col class="px-4 px-sm-5 py-4 vh-100" v-if="isLoadingData">
             <img src="/img/loading.svg" class="loading" alt="loading" />
           </b-col>
 
@@ -256,11 +256,10 @@
                   @click="deleteData()"
                   v-if="isEdit"
                 >REMOVE</b-button>
-                <b-button href="/store" :disabled="isDisable" class="btn-details-set ">CANCEL</b-button>
+                <b-button href="/store" :disabled="isDisable" class="btn-details-set">CANCEL</b-button>
               </b-col>
               <b-col md="6" class="text-sm-right">
                 <button
-                v-if="isEdit"
                   type="button"
                   @click="checkForm(0)"
                   :disabled="isDisable"
@@ -320,9 +319,9 @@ export default {
       modalAlertShow: false,
       list: {
         provinces: [],
-        districts: [{ value: 0, text: this.$t("Please select District") }],
+        districts: [{ value: 0, text: "Please select District" }],
         subDistricts: [
-          { value: 0, text: this.$t("Please select Sub-District") }
+          { value: 0, text: "Please select Sub-District" }
         ]
       },
       form: {
@@ -418,7 +417,10 @@ export default {
         if (this.id > 0) {
           this.getDatas();
         } else {
-          window.location.href = "/store";
+          this.form.branch.id = this.existId;
+          this.id = this.existId;
+          this.isEdit = true;
+          this.$router.push({ path: `/store/details/${this.existId}` });
         }
       }
     },
@@ -450,9 +452,20 @@ export default {
         this.form = data.detail;
         this.isLoadingData = false;
         this.$v.form.$reset();
-        
+
         if (this.form.branch.id > 0) {
           this.isEdit = true;
+        }
+
+        if (this.form.branch.isSameLanguage) {
+          this.imageLogoLang = "";
+        } else {
+          var index = this.languageList
+            .map(function(x) {
+              return x.id;
+            })
+            .indexOf(this.languageActive);
+          this.imageLogoLang = this.languageList[index].imageUrl;
         }
       }
 
@@ -586,6 +599,7 @@ export default {
     useSameLanguage: async function() {
       Vue.nextTick(() => {
         if (this.form.branch.isSameLanguage) {
+          this.imageLogoLang = "";
           this.form.branch.mainLanguageId = this.languageActive;
           let data = this.form.branch.translationList.filter(
             val => val.languageId == this.form.branch.mainLanguageId
@@ -607,6 +621,13 @@ export default {
             }
           }
         } else {
+          var index = this.languageList
+            .map(function(x) {
+              return x.id;
+            })
+            .indexOf(this.languageActive);
+          this.imageLogoLang = this.languageList[index].imageUrl;
+
           let data = this.form.branch.translationList.filter(
             val => val.languageId != this.form.branch.mainLanguageId
           );
@@ -666,6 +687,7 @@ export default {
         this.imgModal = "/img/icon-check-green.png";
         this.msgModal = data.message;
         this.isSuccess = true;
+        this.existId = data.detail.id;
       } else {
         this.imgModal = "/img/icon-unsuccess.png";
         this.msgModal = data.message;

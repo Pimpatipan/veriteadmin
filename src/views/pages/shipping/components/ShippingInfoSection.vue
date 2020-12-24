@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="isLoadingData">
+    <div v-if="isLoadingData" class="vh-100">
       <img src="/img/loading.svg" class="loading" alt="loading" />
     </div>
 
@@ -160,7 +160,6 @@
         </b-col>
         <b-col md="6" class="text-sm-right">
           <button
-            v-if="isEdit"
             type="button"
             @click="checkForm(0)"
             :disabled="isDisable"
@@ -207,6 +206,7 @@ export default {
       languageList: [],
       items: [],
       imageLogoLang: "",
+       existId: "",
       showPreview: "",
       languageActive: 1,
       isDisable: false,
@@ -279,7 +279,10 @@ export default {
         if (this.id > 0) {
           this.getDatas();
         } else {
-          window.location.href = "/shipping";
+          this.form.shipping.id = this.existId;
+          this.id = this.existId;
+          this.isEdit = true;
+          this.$router.push({ path: `/shipping/details/${this.existId}` });
         }
       }
     },
@@ -311,12 +314,23 @@ export default {
         this.form = data.detail;
         this.isLoadingData = false;
         this.$v.form.$reset();
-        
+
         if (this.form.shipping.id > 0) {
           this.isEdit = true;
           this.showPreview = this.form.shipping.imageUrl;
         } else {
           this.form.shipping.shippingConditionId = 1;
+        }
+
+        if (this.form.shipping.isSameLanguage) {
+          this.imageLogoLang = "";
+        } else {
+          var index = this.languageList
+            .map(function(x) {
+              return x.id;
+            })
+            .indexOf(this.languageActive);
+          this.imageLogoLang = this.languageList[index].imageUrl;
         }
       }
     },
@@ -327,6 +341,7 @@ export default {
     useSameLanguage: async function() {
       Vue.nextTick(() => {
         if (this.form.shipping.isSameLanguage) {
+          this.imageLogoLang = "";
           this.form.shipping.mainLanguageId = this.languageActive;
           let data = this.form.shipping.translationList.filter(
             val => val.languageId == this.form.shipping.mainLanguageId
@@ -345,6 +360,13 @@ export default {
             }
           }
         } else {
+          var index = this.languageList
+            .map(function(x) {
+              return x.id;
+            })
+            .indexOf(this.languageActive);
+          this.imageLogoLang = this.languageList[index].imageUrl;
+
           let data = this.form.shipping.translationList.filter(
             val => val.languageId != this.form.shipping.mainLanguageId
           );
@@ -402,6 +424,7 @@ export default {
         this.imgModal = "/img/icon-check-green.png";
         this.msgModal = data.message;
         this.isSuccess = true;
+        this.existId = data.detail.id;
       } else {
         this.imgModal = "/img/icon-unsuccess.png";
         this.msgModal = data.detail[0];

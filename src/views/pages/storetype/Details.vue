@@ -9,7 +9,7 @@
         </b-row>
 
         <b-row class="no-gutters bg-white-border mt-4">
-          <b-col class="px-4 px-sm-5 py-4" v-if="isLoadingData">
+          <b-col class="px-4 px-sm-5 py-4 vh-100" v-if="isLoadingData">
             <img src="/img/loading.svg" class="loading" alt="loading" />
           </b-col>
           <b-col class="px-4 px-sm-5 py-4" v-else>
@@ -126,7 +126,6 @@
               <b-col md="6" class="text-sm-right">
                 <button
                   type="button"
-                  v-if="isEdit"
                   @click="checkForm(0)"
                   :disabled="isDisable"
                   class="btn btn-success btn-details-set ml-md-2 text-uppercase"
@@ -175,6 +174,7 @@ export default {
       id: this.$route.params.id,
       languageList: [],
       imageLogoLang: "",
+       existId: "",
       languageActive: 1,
       showPreview: "",
       isLoading: false,
@@ -229,7 +229,10 @@ export default {
         if (this.id > 0) {
           this.getDatas();
         } else {
-          window.location.href = "/storetype";
+          this.form.branchType.id = this.existId;
+          this.id = this.existId;
+          this.isEdit = true;
+          this.$router.push({ path: `/storetype/details/${this.existId}` });
         }
       }
     },
@@ -275,6 +278,17 @@ export default {
           this.isEdit = true;
           this.showPreview = this.form.branchType.imageUrl;
         }
+
+        if (this.form.branchType.isSameLanguage) {
+          this.imageLogoLang = "";
+        } else {
+          var index = this.languageList
+            .map(function(x) {
+              return x.id;
+            })
+            .indexOf(this.languageActive);
+          this.imageLogoLang = this.languageList[index].imageUrl;
+        }
       }
     },
     changeLanguage(id, index) {
@@ -318,6 +332,7 @@ export default {
     useSameLanguage: async function() {
       Vue.nextTick(() => {
         if (this.form.branchType.isSameLanguage) {
+          this.imageLogoLang = "";
           this.form.branchType.mainLanguageId = this.languageActive;
           let data = this.form.branchType.translationList.filter(
             val => val.languageId == this.form.branchType.mainLanguageId
@@ -335,6 +350,13 @@ export default {
             }
           }
         } else {
+          var index = this.languageList
+            .map(function(x) {
+              return x.id;
+            })
+            .indexOf(this.languageActive);
+          this.imageLogoLang = this.languageList[index].imageUrl;
+
           let data = this.form.branchType.translationList.filter(
             val => val.languageId != this.form.branchType.mainLanguageId
           );
@@ -394,6 +416,7 @@ export default {
         this.imgModal = "/img/icon-check-green.png";
         this.msgModal = data.message;
         this.isSuccess = true;
+        this.existId = data.detail.id;
       } else {
         this.imgModal = "/img/icon-unsuccess.png";
         this.msgModal = data.detail[0];

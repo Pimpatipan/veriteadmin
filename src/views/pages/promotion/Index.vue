@@ -1,94 +1,110 @@
 <template>
   <CContainer class="min-vh-100">
-    <CRow class="w-100 no-gutters">
-      <CCol sm="6" class="text-center text-sm-left">
-        <h1 class="mr-sm-4">PROMOTION MANAGEMENT</h1>
+    <CRow class="no-gutters px-3 px-sm-0">
+      <CCol cols="6">
+        <h1 class="mr-sm-4">PROMOTION</h1>
       </CCol>
-      <CCol sm="6" class="text-center text-sm-right">
-        <b-dropdown id="dropdown-form" right ref="dropdown" class="m-2 btn-filter" no-flip>
-          <template v-slot:button-content>
-            <font-awesome-icon icon="filter" class="mr-2" />FILTER
-          </template>
+      <CCol cols="6" class="text-right">
+        <b-button v-b-toggle.sidebar-1 class="mr-2 btn-filter">
+          <font-awesome-icon icon="filter" title="filter-btn" class="text-white mr-0 mr-sm-1" />
+          <span class="d-none d-sm-inline">FILTER</span>
+        </b-button>
 
-          <div>
-            <p class="font-weight-bold mb-2">Status</p>
-          </div>
-
-          <div class="form-check mb-2">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              value
-              id="all"
-              :checked="checkAll"
-              @click="checkAllSelect()"
-              v-model="selectAllCb"
-            />
-            <label class="form-check-label" for="all">All</label>
-          </div>
-          <div class="row">
-            <div class="col-sm-6">
-              <div class="form-check">
-                <input
-                  class="form-check-input"
-                  v-model="filter.status"
-                  type="checkbox"
-                  value="1"
-                  id="status1"
-                  @change="checkStatusLength"
-                />
-                <label class="form-check-label" for="status1">Active</label>
-              </div>
-            </div>
-            <div class="col-sm-6">
-              <div class="form-check mt-2 mt-sm-0">
-                <input
-                  class="form-check-input"
-                  v-model="filter.status"
-                  type="checkbox"
-                  value="0"
-                  id="status2"
-                  @change="checkStatusLength"
-                />
-                <label class="form-check-label" for="status2">Inactive</label>
-              </div>
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="col-6">
-              <p class="font-weight-bold my-2">Valid From</p>
-              <datetime
-                placeholder="Please select date"
-                class="date-filter"
-              ></datetime>
-            </div>
-            <div class="col-6">
-              <p class="font-weight-bold my-2">Valid To</p>
-              <datetime
-                placeholder="Please select date"
-                class="date-filter"
-              ></datetime>
-            </div>
-          </div>
-
-          <div class="text-center mt-3">
-            <button type="button" class="btn btn-primary button" @click="getDataByStatus()">Submit</button>
-          </div>
-        </b-dropdown>
         <router-link to="/promotion/details/0">
-          <button type="button" class="btn btn-success button">CREATE NEW</button>
+          <button type="button" class="btn btn-success button btn-mobile">
+            <font-awesome-icon icon="plus" class="text-white d-sm-none" />
+            <span class="d-none d-sm-block">CREATE NEW</span>
+          </button>
         </router-link>
       </CCol>
     </CRow>
-    <div class="bg-white-border px-4 px-sm-5 py-4 mt-4">
+    <b-sidebar
+      id="sidebar-1"
+      title="FILTER"
+      backdrop
+      shadow
+      backdrop-variant="dark"
+      right
+      ref="filterSidebar"
+    >
+      <div class="px-3 py-2">
+        <div>
+          <p class="font-weight-bold mb-2">Status</p>
+        </div>
+
+        <div class="form-check mb-2">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            value
+            id="all"
+            :checked="checkAll"
+            @click="checkAllSelect()"
+            v-model="selectAllCb"
+          />
+          <label class="form-check-label" for="all">All</label>
+        </div>
+        <div class="row">
+          <div class="col-6">
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                v-model="filter.status"
+                type="checkbox"
+                value="1"
+                id="status1"
+                @change="checkStatusLength"
+              />
+              <label class="form-check-label" for="status1">Active</label>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                v-model="filter.status"
+                type="checkbox"
+                value="0"
+                id="status2"
+                @change="checkStatusLength"
+              />
+              <label class="form-check-label" for="status2">Inactive</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="row mt-3">
+          <div class="col-6">
+            <p class="font-weight-bold my-2">Valid From</p>
+            <datetime
+              placeholder="Please select date"
+              v-model="filter.validFrom"
+              class="date-filter"
+            ></datetime>
+          </div>
+          <div class="col-6">
+            <p class="font-weight-bold my-2">Valid To</p>
+            <datetime placeholder="Please select date" v-model="filter.validTo" class="date-filter"></datetime>
+          </div>
+        </div>
+
+        <div class="text-center mt-4">
+          <button
+            type="button"
+            class="btn bg-main-color text-white button"
+            @click="getDataByStatus"
+          >Submit</button>
+        </div>
+      </div>
+    </b-sidebar>
+    <div class="bg-white-border px-4 px-sm-5 pb-4 mt-3">
       <b-row class="no-gutters mt-3">
         <b-col lg="6">
           <b-input-group class="panel-input-serach">
             <b-form-input
               class="input-serach"
-              placeholder="Name"
               @keyup="handleSearch"
+              placeholder="Name"
               v-model="filter.search"
             ></b-form-input>
             <b-input-group-prepend>
@@ -98,7 +114,6 @@
             </b-input-group-prepend>
           </b-input-group>
         </b-col>
-        <b-col lg="6" class="text-center text-sm-right"></b-col>
       </b-row>
       <b-row>
         <b-col class="mt-4 w-100">
@@ -111,15 +126,14 @@
             show-empty
             empty-text="No matching records found"
           >
-            <template v-slot:cell(videoUrl)="data">
-              <div class="embed-responsive embed-responsive-16by9">
-                <video class="w-100 videos" controls :poster="data.item.coverImageUrl">
-                  <source :src="data.item.videoUrl" type="video/mp4" />
-                </video>
-              </div>
+            <template v-slot:cell(name)="data">
+              <p class="two-lines m-0">{{data.item.name}}</p>
             </template>
-            <template v-slot:cell(updatedTime)="data">
-              <span>{{ new Date(data.item.updatedTime) | moment($formatDate) }}</span>
+            <template v-slot:cell(startDate)="data">
+              <span>{{ new Date(data.item.startDate) | moment($formatDate) }}</span>
+            </template>
+            <template v-slot:cell(endDate)="data">
+              <span>{{ new Date(data.item.endDate) | moment($formatDate) }}</span>
             </template>
             <template v-slot:cell(enabled)="data">
               <div v-if="data.item.enabled == true" class="text-success">Active</div>
@@ -129,13 +143,13 @@
               <div v-if="data.item.sortOrder == 0">-</div>
               <div v-else>{{data.item.sortOrder}}</div>
             </template>
-            <template v-slot:cell(isHighlight)="data">
-              <div v-if="data.item.isHighlight == true" class="text-success">Yes</div>
-              <div v-else class="text-danger">No</div>
+            <template v-slot:cell(couponCode)="data">
+              <div v-if="data.item.couponCode == ''">-</div>
+              <div v-else>{{data.item.couponCode}}</div>
             </template>
-            <template v-slot:cell(id)="data">
+            <template v-slot:cell(ids)="data">
               <div class="d-flex justify-content-center">
-                <router-link :to="'/video/details/'+data.item.id">
+                <router-link :to="'/promotion/details/'+data.item.id">
                   <b-button variant="link" class="text-warning px-1 py-0">
                     <font-awesome-icon icon="pencil-alt" title="Edit" />
                   </b-button>
@@ -161,14 +175,14 @@
       <b-row>
         <b-col class="form-inline justify-content-center justify-content-md-between">
           <b-pagination
-            v-model="filter.pageno"
+            v-model="filter.pageNo"
             :total-rows="rows"
-            :per-page="filter.perpage"
+            :per-page="filter.perPage"
             class="m-md-0"
             @change="pagination"
           ></b-pagination>
           <b-form-select
-            v-model="filter.perpage"
+            v-model="filter.perPage"
             @change="hanndleChangePerpage"
             :options="pageOptions"
           ></b-form-select>
@@ -185,101 +199,103 @@ export default {
     return {
       fields: [
         {
-          key: "videoUrl",
-          label: "ID"
+          key: "id",
+          label: "ID",
         },
         {
           key: "name",
-          label: "Name"
+          label: "Name",
+          class: "w-100px",
         },
         {
-          key: "updatedTime",
-          label: "Valid From"
+          key: "startDate",
+          label: "Valid From",
+          class: "w-100px",
         },
         {
-          key: "updatedTimee",
-          label: "Valid To"
+          key: "endDate",
+          label: "Valid To",
+          class: "w-100px",
         },
         {
-          key: "videoUrl1",
-          label: "Coupon Code"
+          key: "couponCode",
+          label: "Coupon Code",
         },
         {
-          key: "name2",
-          label: "Type"
+          key: "promotionTypeName",
+          label: "Type",
         },
         {
-          key: "updatedTime3",
-          label: "Priority"
+          key: "sortOrder",
+          label: "Sort Order",
         },
         {
-          key: "updatedTimee4",
-          label: "Action"
-        }
+          key: "enabled",
+          label: "Status",
+        },
+        {
+          key: "ids",
+          label: "Action",
+        },
       ],
       items: [],
       isBusy: false,
       rows: 0,
       filter: {
-        status: [],
+        perPage: 10,
+        pageNo: 1,
+        sortByOrderOrId: 1,
         search: "",
-        perpage: 10,
-        pageno: 1,
-        SortByOrderOrId: 0,
-        HighlightFilter: 0
+        status: [],
+        validFrom: null,
+        validTo: null,
       },
       pageOptions: [
         { value: 10, text: "10 / page" },
         { value: 30, text: "30 / page" },
         { value: 50, text: "50 / page" },
-        { value: 100, text: "100 / page" }
+        { value: 100, text: "100 / page" },
       ],
       checkAll: false,
       selectAllCb: false,
       cbHighlight: false,
-      selected: 0
+      selected: 0,
     };
   },
-  created: async function() {
-    // await this.getList();
+  created: async function () {
+    await this.getList();
   },
   methods: {
-    getList: async function() {
+    getList: async function () {
       this.isBusy = true;
-      this.filter.SortByOrderOrId = this.selected;
+      this.filter.sortByOrderOrId = 1;
 
-      if (this.cbHighlight) {
-        this.filter.HighlightFilter = 1;
-      } else {
-        this.filter.HighlightFilter = 0;
+      let data = await this.$callApi(
+        "post",
+        `${this.$baseUrl}/api/promotion/list`,
+        null,
+        this.$headers,
+        this.filter
+      );
+      if (data.result == 1) {
+        this.items = data.detail.dataList;
+        this.rows = data.detail.count;
+        this.isBusy = false;
       }
-
-      // let data = await this.$callApi(
-      //   "post",
-      //   `${this.$baseUrl}/api/video/list`,
-      //   null,
-      //   this.$headers,
-      //   this.filter
-      // );
-      // if (data.result == 1) {
-      //   this.items = data.detail.dataList;
-      //   this.rows = data.detail.count;
-      //   this.isBusy = false;
-      // }
     },
     handleSearch(e) {
       if (e.keyCode === 13) {
-        this.filter.pageno = 1;
-        //this.getList();
+        this.filter.pageNo = 1;
+        this.getList();
       }
     },
     pagination(Page) {
-      this.filter.pageno = Page;
-      //this.getList();
+      this.filter.pageNo = Page;
+      this.getList();
     },
     getDataByStatus() {
-      this.$refs.dropdown.hide(true);
-      //this.getList();
+      this.$refs.filterSidebar.hide();
+      this.getList();
     },
     checkStatusLength() {
       if (this.filter.status.length == 2) {
@@ -296,15 +312,15 @@ export default {
       }
     },
     hanndleChangePerpage(value) {
-      this.filter.pageno = 1;
-      this.filter.perpage = value;
-      //this.getList();
+      this.filter.pageNo = 1;
+      this.filter.perPage = value;
+      this.getList();
     },
-    deleteData: async function(id) {
+    deleteData: async function (id) {
       if (confirm("Are you sure you want to delete this data?") == true) {
         let data = await this.$callApi(
           "delete",
-          `${this.$baseUrl}/api/video/remove/` + id,
+          `${this.$baseUrl}/api/promotion/remove/` + id,
           null,
           this.$headers,
           null
@@ -314,7 +330,7 @@ export default {
           location.reload();
         }
       }
-    }
-  }
+    },
+  },
 };
 </script>

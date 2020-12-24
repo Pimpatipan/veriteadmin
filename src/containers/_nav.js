@@ -8,36 +8,48 @@ export default [{
         //   icon: 'cil-star',
         // },
         {
+            id: 26,
+            _name: 'CSidebarNavItem',
+            name: 'DASHBOARD',
+            to: '/dashboard',
+            icon: 'cil-speedometer'
+        },
+        {
+            id: 27,
             _name: 'CSidebarNavDropdown',
-            class:'aside-menu-show',
+            class: 'aside-menu-show',
             name: 'CONTENT',
             icon: 'cil-list',
-            items: [
-                {
+            items: [{
+                    id: 1,
                     _name: 'CSidebarNavItem',
-                    name: 'Banner List',
+                    name: 'Banner',
                     to: '/banner',
                     icon: 'cil-satelite',
                 },
                 {
+                    id: 2,
                     _name: 'CSidebarNavItem',
-                    name: 'Video List',
+                    name: 'Video',
                     to: '/video',
                     icon: 'cil-video',
                 },
                 {
+                    id: 3,
                     _name: 'CSidebarNavItem',
-                    name: 'Beauty Tips List',
+                    name: 'Beauty Tips',
                     to: '/beautytips',
                     icon: 'cil-user-female',
                 },
                 {
+                    id: 4,
                     _name: 'CSidebarNavItem',
                     name: 'Skin Consultation',
                     to: '/skinconsultation/home',
                     icon: 'cil-user-female',
                 },
                 {
+                    id: 5,
                     _name: 'CSidebarNavItem',
                     name: 'Skin Consultation List',
                     to: '/skinconsultation',
@@ -46,171 +58,185 @@ export default [{
             ]
         },
         {
+            id: 28,
             _name: 'CSidebarNavDropdown',
             name: 'CATALOG',
             icon: 'cil-list',
-            items: [
-                {
+            items: [{
+                    id: 6,
                     _name: 'CSidebarNavItem',
-                    name: 'Category List',
+                    name: 'Category',
                     to: '/category',
                     icon: 'cil-list',
                 },
                 {
+                    id: 7,
                     _name: 'CSidebarNavItem',
-                    name: 'Product List',
+                    name: 'Product',
                     to: '/product',
                     icon: 'cil-gift',
                 },
                 {
+                    id: 8,
                     _name: 'CSidebarNavItem',
-                    name: 'Inventory List',
+                    name: 'Inventory',
                     to: '/inventory',
                     icon: 'cil-clipboard',
                 }
             ]
         },
-        // {
-        //     _name: 'CSidebarNavItem',
-        //     name: 'PROMOTION LIST',
-        //     to: '/promotion',
-        //     icon: 'cil-list',
-        // },
         {
+            id: 9,
+            _name: 'CSidebarNavItem',
+            name: 'PROMOTION',
+            to: '/promotion',
+            icon: 'cil-list',
+        },
+        {
+            id: 29,
             _name: 'CSidebarNavDropdown',
             name: 'ORDER',
             icon: 'cil-list',
-            items: [
-                {
+            items: [{
+                    id: 10,
                     _name: 'CSidebarNavItem',
-                    name: 'Order List',
+                    name: 'Order',
                     to: '/order',
                     icon: 'cil-clipboard',
                 },
                 {
+                    id: 11,
                     _name: 'CSidebarNavItem',
-                    name: 'Shipping List',
+                    name: 'Shipping',
                     to: '/shipping',
                     icon: 'cil-truck',
                 },
             ]
         },
         {
+            id: 30,
             _name: 'CSidebarNavDropdown',
             name: 'CUSTOMER',
             icon: 'cil-list',
-            items: [
-                {
+            items: [{
+                    id: 12,
                     _name: 'CSidebarNavItem',
-                    name: 'User List',
+                    name: 'User',
                     to: '/user',
                     icon: 'cil-user',
                 },
-                // {
-                //     _name: 'CSidebarNavItem',
-                //     name: 'Customer Review',
-                //     to: '/reviews',
-                //     icon: 'cil-user',
-                // },
-                // {
-                //     _name: 'CSidebarNavItem',
-                //     name: 'Question List',
-                //     to: '/questions',
-                //     icon: 'cil-comment-bubble',
-                // }
+                {
+                    id: 13,
+                    _name: 'CSidebarNavItem',
+                    name: 'Customer Review',
+                    to: '/reviews',
+                    icon: 'cil-user',
+                },
+                {
+                    id: 14,
+                    _name: 'CSidebarNavItem',
+                    name: 'Question',
+                    to: '/questions',
+                    icon: 'cil-comment-bubble',
+                }
             ]
         },
         {
+            id: 31,
             _name: 'CSidebarNavDropdown',
             name: 'PAYMENT',
             icon: 'cil-list',
-            items: [
-                {
+            items: [{
+                    id: 15,
                     _name: 'CSidebarNavItem',
-                    name: 'Bank Account List',
+                    name: 'Bank Account',
                     to: '/bankaccount',
                     icon: 'cil-bank',
                 },
                 {
+                    id: 16,
                     _name: 'CSidebarNavItem',
-                    name: 'Payment Channel List',
+                    name: 'Payment Channel',
                     to: '/paymentchannel',
                     icon: 'cib-cc-mastercard',
                 }
             ]
         },
         {
+            id: 32,
             _name: 'CSidebarNavDropdown',
             name: 'MISC',
             icon: 'cil-list',
-            items: [
-                {
+            items: [{
+                    id: 17,
                     _name: 'CSidebarNavItem',
-                    name: 'Store List',
+                    name: 'Store',
                     to: '/store',
                     icon: 'cil-basket',
                 },
                 {
+                    id: 18,
                     _name: 'CSidebarNavItem',
-                    name: 'Store Type List',
+                    name: 'Store Type',
                     to: '/storetype',
                     icon: 'cil-home',
                 },
                 {
+                    id: 19,
                     _name: 'CSidebarNavItem',
-                    name: 'Other Page List',
+                    name: 'Other Page',
                     to: '/other',
                     icon: 'cil-square',
                 },
                 {
+                    id: 20,
                     _name: 'CSidebarNavItem',
-                    name: 'FAQ List',
+                    name: 'FAQ',
                     to: '/faq',
                     icon: 'cil-comment-bubble',
                 },
                 {
+                    id: 21,
                     _name: 'CSidebarNavItem',
-                    name: 'Career List',
+                    name: 'Career',
                     to: '/career',
                     icon: 'cil-briefcase',
                 },
             ]
         },
         {
+            id: 33,
             _name: 'CSidebarNavDropdown',
             name: 'SYSTEM',
             icon: 'cil-list',
-            items: [
-                {
+            items: [{
+                    id: 22,
                     _name: 'CSidebarNavItem',
-                    name: 'Admin List',
+                    name: 'Admin',
                     to: '/admin',
                     icon: 'cil-user',
                 },
-                // {
-                //     _name: 'CSidebarNavItem',
-                //     name: 'Configuration',
-                //     to: '/configuration',
-                //     icon: 'cil-pencil',
-                // },
-                // {
-                //     _name: 'CSidebarNavItem',
-                //     name: 'Notification',
-                //     to: '/notification',
-                //     icon: 'cil-pencil',
-                // },
-                // {
-                //     _name: 'CSidebarNavItem',
-                //     name: 'Email',
-                //     to: '/email',
-                //     icon: 'cil-pencil',
-                // },
-                // {
-                //     _name: 'CSidebarNavItem',
-                //     name: 'Contact Us',
-                //     to: '/contactus',
-                //     icon: 'cil-pencil',
-                // }
+                {
+                    id: 23,
+                    _name: 'CSidebarNavItem',
+                    name: 'Configuration',
+                    to: '/configuration',
+                    icon: 'cil-pencil',
+                },
+                {
+                    id: 24,
+                    _name: 'CSidebarNavItem',
+                    name: 'Notification',
+                    to: '/notification',
+                    icon: 'cil-pencil',
+                },
+                {
+                    id: 25,
+                    _name: 'CSidebarNavItem',
+                    name: 'Email',
+                    to: '/email',
+                    icon: 'cil-pencil',
+                }
             ]
         },
         // {

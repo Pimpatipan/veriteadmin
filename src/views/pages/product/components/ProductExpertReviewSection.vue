@@ -2,7 +2,7 @@
   <div>
     <form action>
       <b-row class="no-gutters bg-white-border">
-        <b-col  class="px-4 px-sm-5 py-4 mt-4" v-if="isLoadingData">
+        <b-col class="px-4 px-sm-5 py-4 mt-4 vh-100" v-if="isLoadingData">
           <img src="/img/loading.svg" class="loading" alt="loading" />
         </b-col>
 
@@ -10,89 +10,100 @@
           <transition name="fade" mode="out-in">
             <div v-if="show" key="1">
               <b-row>
-                <b-col sm="6">
-                  <div class="float-sm-left p-rt-5 py-3 py-sm-0">
-                    <p class="font-weight-bold mb-1 text-body text-left">Sort By</p>
-                    <b-form-select
-                      v-model="filterExpertReview.sortByOrderOrId"
-                      :options="sortByDefaultOptions"
-                      class="sortByDropdown"
-                      @change="getExpertReviewData"
-                    ></b-form-select>
-                  </div>
-                </b-col>
-                <b-col sm="6" class="text-center text-sm-right">
-                  <b-dropdown
-                    id="dropdown-form"
-                    right
-                    ref="dropdown"
-                    class="m-2 btn-filter"
-                    no-flip
-                  >
-                    <template v-slot:button-content>
-                      <font-awesome-icon icon="filter" class="mr-2" />FILTER
-                    </template>
-
-                    <div>
-                      <p class="font-weight-bold mb-2">Status</p>
-                    </div>
-
-                    <div class="form-check mb-2">
-                      <input
-                        class="form-check-input"
-                        type="checkbox"
-                        value
-                        id="allExpertReview"
-                        :checked="checkAll"
-                        @click="checkAllSelect()"
-                        v-model="selectAllCb"
-                      />
-                      <label class="form-check-label" for="allExpertReview">All</label>
-                    </div>
-                    <div class="row">
-                      <div class="col-sm-6">
-                        <div class="form-check">
-                          <input
-                            class="form-check-input"
-                            v-model="filterExpertReview.status"
-                            type="checkbox"
-                            value="1"
-                            id="status1"
-                            @change="checkStatusLength"
-                          />
-                          <label class="form-check-label" for="status1">Active</label>
-                        </div>
-                      </div>
-                      <div class="col-sm-6">
-                        <div class="form-check mt-2 mt-sm-0">
-                          <input
-                            class="form-check-input"
-                            v-model="filterExpertReview.status"
-                            type="checkbox"
-                            value="0"
-                            id="status2"
-                            @change="checkStatusLength"
-                          />
-                          <label class="form-check-label" for="status2">Inactive</label>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="text-center mt-3">
-                      <button
-                        type="button"
-                        class="btn btn-primary button"
-                        @click="getDataByStatus()"
-                      >Submit</button>
-                    </div>
-                  </b-dropdown>
+                <b-col sm="6"></b-col>
+                <b-col sm="6" class="text-right">
+                  <b-button v-b-toggle.sidebar-1 class="mr-2 btn-filter">
+                    <font-awesome-icon
+                      icon="filter"
+                      title="filter-btn"
+                      class="text-white mr-0 mr-sm-1"
+                    />
+                    <span class="d-none d-sm-inline">FILTER</span>
+                  </b-button>
                   <button
                     type="button"
-                    class="btn btn-success button"
+                    class="btn btn-success button btn-mobile"
                     @click="addExpertReview"
-                    v-if="id != 0"
-                  >CREATE NEW</button>
+                  >
+                    <font-awesome-icon icon="plus" class="text-white d-sm-none" />
+                    <span class="d-none d-sm-block">CREATE NEW</span>
+                  </button>
                 </b-col>
               </b-row>
+              <b-sidebar
+                id="sidebar-1"
+                title="FILTER"
+                backdrop
+                shadow
+                backdrop-variant="dark"
+                right
+                ref="filterSidebar"
+              >
+                <div class="px-3 py-2">
+                  <div>
+                    <p class="font-weight-bold mb-2">Status</p>
+                  </div>
+
+                  <div class="form-check mb-2">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      value
+                      id="allExpertReview"
+                      :checked="checkAll"
+                      @click="checkAllSelect()"
+                      v-model="selectAllCb"
+                    />
+                    <label class="form-check-label" for="allExpertReview">All</label>
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      <div class="form-check">
+                        <input
+                          class="form-check-input"
+                          v-model="filterExpertReview.status"
+                          type="checkbox"
+                          value="1"
+                          id="status1"
+                          @change="checkStatusLength"
+                        />
+                        <label class="form-check-label" for="status1">Active</label>
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <div class="form-check mt-2 mt-sm-0">
+                        <input
+                          class="form-check-input"
+                          v-model="filterExpertReview.status"
+                          type="checkbox"
+                          value="0"
+                          id="status2"
+                          @change="checkStatusLength"
+                        />
+                        <label class="form-check-label" for="status2">Inactive</label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="my-3">
+                    <p class="font-weight-bold mb-2">Sort By</p>
+                  </div>
+
+                  <b-form-select
+                    v-model="filterExpertReview.sortByOrderOrId"
+                    :options="sortByDefaultOptions"
+                    class="sortByDropdown"
+                  ></b-form-select>
+
+                  <div class="text-center mt-3">
+                    <button
+                      type="button"
+                    class="btn bg-main-color text-white button"
+                      @click="getDataByStatus()"
+                    >Submit</button>
+                  </div>
+                </div>
+              </b-sidebar>
               <div class="mt-5">
                 <b-table
                   striped
@@ -382,6 +393,34 @@
       @closeModal="handleCloseModal"
       :isSuccess="isSuccess"
     />
+
+    <b-modal
+      id="modalFail"
+      ref="modalFail"
+      hide-header
+      hide-footer
+      no-close-on-backdrop
+      centered
+      body-class="p-4"
+    >
+      <div class="modal-header border-0 px-0 pt-0">
+        <button type="button" aria-label="Close" class="close" @click="$bvModal.hide('modalFail')">×</button>
+      </div>
+      <div>
+        <b-container class="p-0">
+          <b-row>
+            <b-col>
+              <div class="text-center">
+                <img src="/img/icon-unsuccess.png" alt="fail" class="mb-3" />
+                <h1 class="text-msg mt-3 font-weight-bold">Please create product before proceeding</h1>
+              </div>
+            </b-col>
+          </b-row>
+        </b-container>
+      </div>
+    </b-modal>
+  </div>
+</template>
   </div>
 </template>
 
@@ -425,6 +464,7 @@ export default {
       isSameLanguageExpertReview: false,
       isExpertReview: false,
       rowsExpertReview: 0,
+      existId: "",
       expertReviewFields: [
         {
           key: "imageUrl",
@@ -513,9 +553,11 @@ export default {
     }
   },
   created: async function() {
-    if (this.id != 0) {
-      await this.getExpertReviewData();
-    }
+    setTimeout(async () => {
+      if (this.id != 0) {
+        await this.getExpertReviewData();
+      }
+    }, 3000);
   },
   methods: {
     isNumber: function(evt) {
@@ -528,17 +570,9 @@ export default {
       }
     },
     getExpertReviewData: async function() {
-      let languages = await this.$callApi(
-        "get",
-        `${this.$baseUrl}/api/language`,
-        null,
-        this.$headers,
-        null
-      );
-      if (languages.result == 1) {
-        this.languageList = languages.detail;
-        this.changeLanguageExpertReview(1, 0);
-      }
+      this.languageList = this.$languages;
+
+      await this.changeLanguageExpertReview(1, 0);
 
       this.isBusyExpertReview = true;
 
@@ -575,6 +609,8 @@ export default {
           );
         } else {
           this.show = true;
+          this.id = this.existId;
+          if (this.$route.params.id != 0) this.getExpertReviewData();
           this.getExpertReviewData();
         }
       }
@@ -594,13 +630,15 @@ export default {
       }
     },
     getDataByStatus() {
-      this.$refs.dropdown.hide(true);
+      this.$refs.filterSidebar.hide(true);
       this.getExpertReviewData();
     },
     addExpertReview() {
-      if (this.id == 0) {
-        this.$refs["modalFail"].show();
-        return;
+      if (this.$route.params.id == 0) {
+        if (this.id == 0) {
+          this.$refs["modalFail"].show();
+          return;
+        }
       }
 
       this.show = !this.show;
@@ -648,6 +686,17 @@ export default {
           this.showExpertReviewImage = data.detail.expertReview.imageUrl;
         }
         this.changeLanguageExpertReview(1, 0);
+
+        if (this.expertReviewDetail.expertReview.isSameLanguage) {
+          this.imageLogoLangExpertReview = "";
+        } else {
+          var index = this.languageList
+            .map(function(x) {
+              return x.id;
+            })
+            .indexOf(this.languageActiveExpertReview);
+          this.imageLogoLangExpertReview = this.languageList[index].imageUrl;
+        }
       }
     },
     checkValidateTranslationListExpertReview() {
@@ -690,7 +739,9 @@ export default {
     saveExpertReview: async function() {
       this.isDisable = true;
       this.isExpertReview = true;
-      this.expertReviewDetail.expertReview.productId = this.id;
+
+      if (this.$route.params.id != 0)
+        this.expertReviewDetail.expertReview.productId = this.$route.params.id;
 
       let data = await this.$callApi(
         "post",
@@ -705,6 +756,7 @@ export default {
         this.imgModal = "/img/icon-check-green.png";
         this.msgModal = data.message;
         this.isSuccess = true;
+        this.existId = this.$route.params.id;
       } else {
         this.imgModal = "/img/icon-unsuccess.png";
         this.msgModal = data.detail[0];
@@ -756,6 +808,7 @@ export default {
     useSameLanguageExpertReview: async function() {
       Vue.nextTick(() => {
         if (this.expertReviewDetail.expertReview.isSameLanguage) {
+          this.imageLogoLangExpertReview = "";
           this.expertReviewDetail.expertReview.mainLanguageId = this.languageActiveExpertReview;
           let data = this.expertReviewDetail.expertReview.translationList.filter(
             val => val.languageId == this.languageActiveExpertReview
@@ -783,6 +836,13 @@ export default {
           }
           //}
         } else {
+          var index = this.languageList
+            .map(function(x) {
+              return x.id;
+            })
+            .indexOf(this.languageActive);
+          this.imageLogoLangExpertReview = this.languageList[index].imageUrl;
+
           let data = this.expertReviewDetail.expertReview.translationList.filter(
             val => val.languageId != this.languageActiveExpertReview
           );

@@ -8,8 +8,8 @@
           </b-col>
         </b-row>
 
-        <b-row class="no-gutters bg-white-border mt-4">
-          <b-col class="px-4 px-sm-5 py-4" v-if="isLoadingData">
+        <b-row class="no-gutters bg-white-border mt-3">
+          <b-col class="px-4 px-sm-5 py-4 vh-100" v-if="isLoadingData">
             <img src="/img/loading.svg" class="loading" alt="loading" />
           </b-col>
 
@@ -62,7 +62,9 @@
                 <div
                   class="preview-box"
                   v-bind:style="{ 'background-image': 'url(' + showPreview + ')' }"
-                ><img src="/img/loading.svg" class="loading" alt="loading" v-if="isLoading" /></div>
+                >
+                  <img src="/img/loading.svg" class="loading" alt="loading" v-if="isLoading" />
+                </div>
               </b-col>
               <b-col md="6">
                 <UploadFile
@@ -214,6 +216,17 @@ export default {
         this.$v.form.$reset();
 
         this.showPreview = this.form.skinConsultWeb.imageUrl;
+
+        if (this.form.skinConsultWeb.isSameLanguage) {
+          this.imageLogoLang = "";
+        } else {
+          var index = this.languageList
+            .map(function(x) {
+              return x.id;
+            })
+            .indexOf(this.languageActive);
+          this.imageLogoLang = this.languageList[index].imageUrl;
+        }
       }
     },
     changeLanguage(id, index) {
@@ -223,6 +236,7 @@ export default {
     useSameLanguage: async function() {
       Vue.nextTick(() => {
         if (this.form.skinConsultWeb.isSameLanguage) {
+          this.imageLogoLang = "";
           this.form.skinConsultWeb.mainLanguageId = this.languageActive;
           let data = this.form.skinConsultWeb.translationList.filter(
             val => val.languageId == this.form.skinConsultWeb.mainLanguageId
@@ -242,6 +256,13 @@ export default {
             }
           }
         } else {
+          var index = this.languageList
+            .map(function(x) {
+              return x.id;
+            })
+            .indexOf(this.languageActive);
+          this.imageLogoLang = this.languageList[index].imageUrl;
+
           let data = this.form.skinConsultWeb.translationList.filter(
             val => val.languageId != this.form.skinConsultWeb.mainLanguageId
           );

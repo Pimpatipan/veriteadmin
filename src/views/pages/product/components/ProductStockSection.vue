@@ -14,7 +14,7 @@
                     >{{ stockitems.stock.inStock | numeral('0,0') }}</span>
                   </label>
                 </b-col>
-                <b-col sm="6" class="text-sm-right my-2 my-sm-3" v-if="id != 0">
+                <b-col sm="6" class="text-sm-right my-2 my-sm-3">
                   <span class="ml-sm-2 text-underline pointer" @click="setStockQty(1)">Increase</span>
                   <span class="ml-2 text-underline pointer" @click="setStockQty(2)">Decrease</span>
                   <span class="ml-2 text-underline pointer" @click="setStockQty(3)">Adjust</span>
@@ -36,11 +36,29 @@
 
           <div class="mt-3">
             <div class="text-right mb-3">
-              <b-dropdown id="dropdown-form" right ref="dropdown" class="m-2 btn-filter" no-flip>
-                <template v-slot:button-content>
-                  <font-awesome-icon icon="filter" class="mr-2" />FILTER
-                </template>
-
+              <b-button v-b-toggle.sidebar-1 class="mr-2 btn-filter">
+                <font-awesome-icon
+                  icon="filter"
+                  title="filter-btn"
+                  class="text-white mr-0 mr-sm-1"
+                />
+                <span class="d-none d-sm-inline">FILTER</span>
+              </b-button>
+              <button type="button" class="btn btn-main btn-mobile button" @click="exportStockData">
+                <font-awesome-icon icon="file-download" class="text-white d-sm-none" />
+                <span class="d-none d-sm-block">EXPORT</span>
+              </button>
+            </div>
+            <b-sidebar
+              id="sidebar-1"
+              title="FILTER"
+              backdrop
+              shadow
+              backdrop-variant="dark"
+              right
+              ref="filterSidebar"
+            >
+              <div class="px-3 py-2">
                 <div>
                   <p class="font-weight-bold mb-2">Order Status</p>
                 </div>
@@ -82,13 +100,12 @@
                 <div class="text-center mt-3">
                   <button
                     type="button"
-                    class="btn btn-primary button"
+                     class="btn bg-main-color text-white button"
                     @click="getDataByStockFilter()"
                   >Submit</button>
                 </div>
-              </b-dropdown>
-              <button type="button" class="btn btn-main button" @click="exportStockData" v-if="id != 0">EXPORT</button>
-            </div>
+              </div>
+            </b-sidebar>
             <b-table
               striped
               responsive
@@ -186,7 +203,7 @@
         <b-container class="p-0">
           <b-row>
             <b-col>
-              <InputText
+              <!-- <InputText
                 textFloat="Current Stock"
                 placeholder="Current Stock"
                 type="text"
@@ -203,6 +220,32 @@
                 isRequired
                 v-model="newStock"
                 @onKeypress="isNumber($event)"
+              />-->
+
+              <InputText
+                textFloat="Unit"
+                placeholder="Unit"
+                type="number"
+                name="stock"
+                isRequired
+                v-model="newStock"
+                @onKeypress="isNumber($event)"
+                @onKeyup="setInStockData"
+              />
+
+              <label class="label-text mb-4">
+                In stock:
+                <span class="text-body px-3">{{oldStock}}</span>
+                <font-awesome-icon icon="arrow-right" title="arrow-rights" />
+                <span class="text-body pl-3">{{inStockData}}</span>
+              </label>
+
+              <InputText
+                textFloat="Note"
+                placeholder="Note"
+                type="text"
+                name="note"
+                v-model="note"
               />
 
               <p v-if="stockerror" class="text-danger">{{stockMsgError}}</p>
@@ -214,6 +257,43 @@
         </b-container>
       </div>
     </b-modal>
+
+    <ModalAlert
+      v-if="modalAlertShow"
+      :msg="msgModal"
+      :img="imgModal"
+      :isOpen="modalAlertShow"
+      @close="modalAlertShow = false"
+      @closeModal="handleCloseModal"
+      :isSuccess="isSuccess"
+      :hideClose="hideClose"
+    />
+
+    <b-modal
+      id="modalFail"
+      ref="modalFail"
+      hide-header
+      hide-footer
+      no-close-on-backdrop
+      centered
+      body-class="p-4"
+    >
+      <div class="modal-header border-0 px-0 pt-0">
+        <button type="button" aria-label="Close" class="close" @click="$bvModal.hide('modalFail')">×</button>
+      </div>
+      <div>
+        <b-container class="p-0">
+          <b-row>
+            <b-col>
+              <div class="text-center">
+                <img src="/img/icon-unsuccess.png" alt="fail" class="mb-3" />
+                <h1 class="text-msg mt-3 font-weight-bold">Please create product before proceeding</h1>
+              </div>
+            </b-col>
+          </b-row>
+        </b-container>
+      </div>
+    </b-modal>
   </div>
 </template>
 
@@ -222,12 +302,14 @@ import InputText from "@/components/inputs/InputText";
 import * as moment from "moment/moment";
 import axios from "axios";
 import HeaderLine from "@/components/HeaderLine";
+import ModalAlert from "@/components/ModalAlert";
 
 export default {
   name: "ProductStock",
   components: {
     InputText,
-    HeaderLine
+    HeaderLine,
+    ModalAlert
   },
   data() {
     return {
@@ -254,10 +336,13 @@ export default {
         }
       },
       stockMsgError: "",
+      note: "",
       stockerror: false,
       setStockType: 0,
       rowsStock: 0,
       newStock: 0,
+      oldStock: 0,
+      inStockData: 0,
       stockFields: [
         {
           key: "createdTime",
@@ -309,6 +394,9 @@ export default {
     }
   },
   methods: {
+    handleCloseModal: function() {
+      this.modalAlertShow = false;
+    },
     isNumber: function(evt) {
       evt = evt ? evt : window.event;
       var charCode = evt.which ? evt.which : evt.keyCode;
@@ -361,14 +449,39 @@ export default {
       }
     },
     setStockQty(type) {
+      if (this.$route.params.id == 0) {
+        if (this.id == 0) {
+          this.$refs["modalFail"].show();
+          return;
+        }
+      }
+
       this.setStockType = type;
+      this.oldStock = this.stockitems.stock.inStock;
       this.$refs["setStockModal"].show();
+      this.inStockData = this.stockitems.stock.inStock;
+    },
+    setInStockData(value) {
+      if (this.newStock != "" || this.newStock != 0) {
+        this.isDisable = false;
+        if (this.setStockType == 1) {
+          this.inStockData = parseInt(this.newStock) + parseInt(this.oldStock);
+        } else if (this.setStockType == 2) {
+          this.inStockData = parseInt(this.oldStock) - parseInt(this.newStock);
+        } else if (this.setStockType == 3) {
+          this.inStockData = this.newStock;
+        }
+      } else {
+        this.isDisable = true;
+        this.inStockData = this.oldStock;
+      }
     },
     saveStock: async function() {
       let modalData = {
         productId: this.id,
         quantity: this.newStock,
-        actionId: this.setStockType
+        actionId: this.setStockType,
+        note: this.note
       };
 
       let data = await this.$callApi(
@@ -399,26 +512,50 @@ export default {
       this.getStockData();
     },
     getDataByStockFilter() {
-      this.$refs.dropdown.hide(true);
+      this.$refs.filterSidebar.hide(true);
       this.getStockData();
     },
     exportStockData: async function() {
+      if (this.$route.params.id == 0) {
+        if (this.id == 0) {
+          this.$refs["modalFail"].show();
+          return;
+        }
+      }
+
+      this.modalAlertShow = true;
+      this.imgModal = "/img/loading.svg";
+      this.msgModal = "In progress. Exporting Data...";
+      this.isSuccess = true;
+      this.hideClose = true;
+
       axios({
         url: `${this.$baseUrl}/api/product/exportStockLog/${this.id}`,
         method: "post",
         headers: this.$headers,
         responseType: "blob",
         data: this.filterStock
-      }).then(response => {
-        var fileURL = window.URL.createObjectURL(new Blob([response.data]));
-        var fileLink = document.createElement("a");
-        var dateExcel = moment().format("DDMMYYYYhhmmss");
+      })
+        .then(response => {
+          var fileURL = window.URL.createObjectURL(new Blob([response.data]));
+          var fileLink = document.createElement("a");
+          var dateExcel = moment().format("DDMMYYYYhhmmss");
 
-        fileLink.href = fileURL;
-        fileLink.setAttribute("download", `Stock-Log-` + dateExcel + `.xlsx`);
-        document.body.appendChild(fileLink);
-        fileLink.click();
-      });
+          this.modalAlertShow = false;
+
+          fileLink.href = fileURL;
+          fileLink.setAttribute("download", `Stock-Log-` + dateExcel + `.xlsx`);
+          document.body.appendChild(fileLink);
+          fileLink.click();
+        })
+        .catch(error => {
+          if (error.response.status === 500) {
+            this.imgModal = "/img/icon-unsuccess.png";
+            this.msgModal =
+              "Internal Server Error. Please contact system administrator";
+            this.hideClose = false;
+          }
+        });
     }
   }
 };

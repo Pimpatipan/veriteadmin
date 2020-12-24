@@ -4,12 +4,12 @@
       <b-container class="container-box">
         <b-row class="no-gutters">
           <b-col>
-            <h1 class="font-weight-bold text-uppercase">Email Notification</h1>
+            <h1 class="font-weight-bold text-uppercase">Notification</h1>
           </b-col>
         </b-row>
 
         <b-row class="no-gutters bg-white-border mt-4">
-          <b-col class="px-4 px-sm-5 py-4" v-if="isLoadingData">
+          <b-col class="px-4 px-sm-5 py-4 vh-100" v-if="isLoadingData">
             <img src="/img/loading.svg" class="loading" alt="loading" />
           </b-col>
 
@@ -21,6 +21,9 @@
                   placeholder="ex. example@gmail.com,example2@gmail.com"
                   type="text"
                   name="orderemail"
+                  v-model="form.orderEmail"
+                  :isValidate="$v.form.orderEmail.$error"
+                  :v="$v.form.orderEmail"
                 />
               </b-col>
             </b-row>
@@ -32,6 +35,9 @@
                   placeholder="ex. example@gmail.com,example2@gmail.com"
                   type="text"
                   name="paymentemail"
+                  v-model="form.paymentEmail"
+                  :isValidate="$v.form.paymentEmail.$error"
+                  :v="$v.form.paymentEmail"
                 />
               </b-col>
             </b-row>
@@ -43,6 +49,23 @@
                   placeholder="ex. example@gmail.com,example2@gmail.com"
                   type="text"
                   name="reviewemail"
+                  v-model="form.reviewEmail"
+                  :isValidate="$v.form.reviewEmail.$error"
+                  :v="$v.form.reviewEmail"
+                />
+              </b-col>
+            </b-row>
+
+            <b-row>
+              <b-col>
+                <InputText
+                  textFloat="New Question Email (Separate Email by ,)"
+                  placeholder="ex. example@gmail.com,example2@gmail.com"
+                  type="text"
+                  name="reviewemail"
+                  v-model="form.questionEmail"
+                  :isValidate="$v.form.questionEmail.$error"
+                  :v="$v.form.questionEmail"
                 />
               </b-col>
             </b-row>
@@ -79,6 +102,7 @@
 import InputText from "@/components/inputs/InputText";
 import ModalAlert from "@/components/ModalAlert";
 import HeaderLine from "@/components/HeaderLine";
+import { required } from "vuelidate/lib/validators";
 
 export default {
   name: "EmailNotification",
@@ -93,11 +117,25 @@ export default {
       isLoadingData: false,
       imgModal: null,
       msgModal: null,
-      modalAlertShow: false
+      modalAlertShow: false,
+      form: {
+        orderEmail: "",
+        paymentEmail: "",
+        reviewEmail: "",
+        questionEmail: ""
+      }
     };
   },
+  validations: {
+    form: {
+      orderEmail: { required },
+      paymentEmail: { required },
+      reviewEmail: { required },
+      questionEmail: { required }
+    }
+  },
   created: async function() {
-    //await this.getDatas();
+    await this.getDatas();
   },
   methods: {
     isNumber: function(evt) {
@@ -117,7 +155,7 @@ export default {
 
       let data = await this.$callApi(
         "get",
-        `${this.$baseUrl}/api/skinConsultWeb`,
+        `${this.$baseUrl}/api/Configuration/emailNotification`,
         null,
         this.$headers,
         null
@@ -127,19 +165,14 @@ export default {
         this.form = data.detail;
         this.isLoadingData = false;
         this.$v.form.$reset();
-
-        this.showPreview = this.form.skinConsultWeb.imageUrl;
       }
     },
     checkForm: async function(flag) {
-      if (this.form.skinConsultWeb.isSameLanguage) {
-        await this.useSameLanguage();
-      }
       this.$v.form.$touch();
       if (this.$v.form.$error) {
-        await this.checkValidateTranslationList();
         return;
       }
+
       this.modalAlertShow = false;
       this.flag = flag;
       this.submit();
@@ -149,7 +182,7 @@ export default {
 
       let data = await this.$callApi(
         "post",
-        `${this.$baseUrl}/api/skinConsultWeb/save`,
+        `${this.$baseUrl}/api/Configuration/saveEmailNotification`,
         null,
         this.$headers,
         this.form

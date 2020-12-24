@@ -225,9 +225,11 @@ export default {
       this.getDatas();
     },
     addShippingRate() {
-      if (this.id == 0) {
-        this.$refs["modalFail"].show();
-        return;
+      if (this.$route.params.id == 0) {
+        if (this.id == 0) {
+          this.$refs["modalFail"].show();
+          return;
+        }
       }
 
       this.modalData.id = 0;
@@ -259,7 +261,9 @@ export default {
       if (this.$v.modalData.$error) {
         return;
       }
-      this.modalData.shippingTypeId = this.id;
+
+      if (this.$route.params.id != 0)
+        this.modalData.shippingTypeId = this.$route.params.id;
 
       let data = await this.$callApi(
         "post",
@@ -270,6 +274,7 @@ export default {
       );
 
       if (data.result == 1) {
+        if (this.$route.params.id != 0) this.id = this.$route.params.id;
         this.getDatas();
       }
 

@@ -9,7 +9,7 @@
         </b-row>
 
         <b-row class="no-gutters bg-white-border mt-4">
-          <b-col class="px-4 px-sm-5 py-4" v-if="isLoadingData">
+          <b-col class="px-4 px-sm-5 py-4 vh-100" v-if="isLoadingData">
             <img src="/img/loading.svg" class="loading" alt="loading" />
           </b-col>
           <b-col class="px-4 px-sm-5 py-4" v-else>
@@ -87,18 +87,30 @@
 
             <b-row class="mt-3">
               <b-col md="6">
-                <InputText
-                  class="mb-4"
-                  textFloat="URL Key"
-                  placeholder="URL Key"
-                  type="text"
-                  name="email"
-                  isRequired
-                  v-model="form.staticPage.urlKey"
-                  :isValidate="$v.form.staticPage.urlKey.$error"
-                  :v="$v.form.staticPage.urlKey"
-                  @onKeyup="onUrlkeyChange"
-                />
+                <div class="position-relative">
+                  <InputText
+                    class="mb-4"
+                    textFloat="URL Key"
+                    placeholder="URL Key"
+                    type="text"
+                    name="email"
+                    isRequired
+                    v-model="form.staticPage.urlKey"
+                    :isValidate="$v.form.staticPage.urlKey.$error"
+                    :v="$v.form.staticPage.urlKey"
+                    @onKeyup="onUrlkeyChange"
+                  />
+                  <!-- <a
+                    :href="'http://verite.dosetech.co/'+form.staticPage.urlKey"
+                    target="_blank"
+                    class="view-txt"
+                  >View</a> -->
+                  <a
+                    :href="'https://www.verite.co.th/'+form.staticPage.urlKey"
+                    target="_blank"
+                    class="view-txt"
+                  >View</a>
+                </div>
               </b-col>
               <b-col md="6">
                 <label class="font-weight-bold main-label">
@@ -288,9 +300,20 @@ export default {
         this.form = data.detail;
         this.isLoadingData = false;
         this.$v.form.$reset();
-        
+
         if (this.form.staticPage.id > 0) {
           this.isEdit = true;
+        }
+
+        if (this.form.staticPage.isSameLanguage) {
+          this.imageLogoLang = "";
+        } else {
+          var index = this.languageList
+            .map(function(x) {
+              return x.id;
+            })
+            .indexOf(this.languageActive);
+          this.imageLogoLang = this.languageList[index].imageUrl;
         }
       }
     },
@@ -301,6 +324,7 @@ export default {
     useSameLanguage: async function() {
       Vue.nextTick(() => {
         if (this.form.staticPage.isSameLanguage) {
+          this.imageLogoLang = "";
           this.form.staticPage.mainLanguageId = this.languageActive;
           let data = this.form.staticPage.translationList.filter(
             val => val.languageId == this.form.staticPage.mainLanguageId
@@ -321,6 +345,13 @@ export default {
             }
           }
         } else {
+          var index = this.languageList
+            .map(function(x) {
+              return x.id;
+            })
+            .indexOf(this.languageActive);
+          this.imageLogoLang = this.languageList[index].imageUrl;
+
           let data = this.form.staticPage.translationList.filter(
             val => val.languageId != this.form.staticPage.mainLanguageId
           );
@@ -408,3 +439,14 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+.view-txt {
+  position: absolute;
+  right: 0;
+  top: 0;
+  text-decoration: underline;
+  color: #707070;
+  z-index: 1;
+}
+</style>

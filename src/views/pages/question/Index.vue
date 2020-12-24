@@ -1,209 +1,225 @@
 <template>
   <CContainer class="min-vh-100">
     <div>
-      <CRow class="w-100 no-gutters mb-4">
-        <CCol sm="6" class="text-center text-sm-left">
-          <h1 class="mr-sm-4">QUESTION MANAGEMENT</h1>
+      <CRow class="no-gutters px-3 px-sm-0">
+        <CCol cols="6">
+          <h1 class="mr-sm-4 header">QUESTION</h1>
         </CCol>
-        <CCol sm="6" class="text-center text-sm-right">
-          <b-dropdown id="dropdown-form" right ref="dropdowns" class="m-2 btn-filter" no-flip>
-            <template v-slot:button-content>
-              <font-awesome-icon icon="filter" class="mr-2" />FILTER
-            </template>
-
-            <div>
-              <p class="font-weight-bold mt-3 mb-2">Verify Status</p>
-            </div>
-
-            <div class="form-check mb-2">
-              <input
-                class="form-check-input"
-                type="checkbox"
-                value
-                id="all"
-                :checked="checkAll"
-                @click="checkAllVerifyStatus()"
-                v-model="selectAllVerifyCb"
-              />
-              <label class="form-check-label" for="all">All</label>
-            </div>
-            <div class="row">
-              <div class="col-sm-6">
-                <div class="form-check">
-                  <input
-                    class="form-check-input"
-                    v-model="filterQuestion.verifyStatus"
-                    type="checkbox"
-                    value="1"
-                    id="verify1"
-                    @change="checkVerifyLength"
-                  />
-                  <label class="form-check-label" for="verify1">Verified</label>
-                </div>
-              </div>
-              <div class="col-sm-6">
-                <div class="form-check mt-2 mt-sm-0">
-                  <input
-                    class="form-check-input"
-                    v-model="filterQuestion.verifyStatus"
-                    type="checkbox"
-                    value="0"
-                    id="verify2"
-                    @change="checkVerifyLength"
-                  />
-                  <label class="form-check-label" for="verify2">Not Verified</label>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <p class="font-weight-bold mt-3 mb-2">Answer Status</p>
-            </div>
-
-            <div class="form-check mb-2">
-              <input
-                class="form-check-input"
-                type="checkbox"
-                value
-                id="allAnswer"
-                :checked="checkAll"
-                @click="checkAllAnswerStatus()"
-                v-model="selectAllAnswerCb"
-              />
-              <label class="form-check-label" for="allAnswer">All</label>
-            </div>
-            <div class="row">
-              <div class="col-sm-6">
-                <div class="form-check">
-                  <input
-                    class="form-check-input"
-                    v-model="filterQuestion.answerStatus"
-                    type="checkbox"
-                    value="1"
-                    id="ans1"
-                    @change="checkAnswerLength"
-                  />
-                  <label class="form-check-label" for="ans1">Answer</label>
-                </div>
-              </div>
-              <div class="col-sm-6">
-                <div class="form-check mt-2 mt-sm-0">
-                  <input
-                    class="form-check-input"
-                    v-model="filterQuestion.answerStatus"
-                    type="checkbox"
-                    value="0"
-                    id="ans2"
-                    @change="checkAnswerLength"
-                  />
-                  <label class="form-check-label" for="ans2">Wait for answer</label>
-                </div>
-              </div>
-            </div>
-
-            <div class="text-center mt-3">
-              <button
-                type="button"
-                class="btn btn-primary button"
-                @click="getQuestionDataByFilter()"
-              >Submit</button>
-            </div>
-          </b-dropdown>
+        <CCol cols="6" class="text-right">
+          <b-button v-b-toggle.sidebar-1 class="btn-filter">
+            <font-awesome-icon icon="filter" title="filter-btn" class="text-white mr-0 mr-sm-1" />
+            <span class="d-none d-sm-inline">FILTER</span>
+          </b-button>
         </CCol>
       </CRow>
-      <form action>
-        <b-row class="no-gutters bg-white-border">
-          <b-col class="px-4 px-sm-5 py-4 mt-3">
-            <b-row>
-              <b-col lg="6">
-                <b-input-group class="panel-input-serach">
-                  <b-form-input
-                    class="input-serach"
-                    @keyup="handleSearch"
-                    placeholder="Product Name"
-                  ></b-form-input>
-                  <b-input-group-prepend>
-                    <span class="icon-input m-auto pr-2">
-                      <font-awesome-icon icon="search" />
-                    </span>
-                  </b-input-group-prepend>
-                </b-input-group>
-              </b-col>
-              <b-col lg="6" class="text-center text-sm-right">
-                <div class="float-sm-left p-rt-5 py-3 py-sm-0">
-                  <p class="font-weight-bold mb-1 text-body text-left">Sort By</p>
-                  <b-form-select
-                    v-model="filterQuestion.sortByDateTime"
-                    :options="optionsQuestion"
-                    class="sortByDropdown"
-                    @change="getQuestionData"
-                  ></b-form-select>
-                </div>
-              </b-col>
-            </b-row>
+      <b-sidebar
+        id="sidebar-1"
+        title="FILTER"
+        backdrop
+        shadow
+        backdrop-variant="dark"
+        right
+        ref="filterSidebar"
+      >
+        <div class="px-3 py-2">
+          <div>
+            <p class="font-weight-bold mt-3 mb-2">Verify Status</p>
+          </div>
 
-            <div class="mt-5">
-              <b-table
-                striped
-                responsive
-                hover
-                :items="questionitems"
-                :fields="questionFields"
-                :busy="isBusyQuestion"
-                show-empty
-                empty-text="No matching records found"
-              >
-                <template v-slot:cell(questionTime)="data">
-                  <span>{{ new Date(data.item.questionTime) | moment($formatDate) }}</span>
-                </template>
-                <template v-slot:cell(isVerify)="data">
-                  <div v-if="data.item.isVerify == true" class="text-success">Verified</div>
-                  <div v-else class="text-danger">Not Verified</div>
-                </template>
-                <template v-slot:cell(questionBy)="data">
-                  <div v-if="data.item.questionBy == ' '">-</div>
-                  <div v-else>{{data.item.questionBy}}</div>
-                </template>
-                <template v-slot:cell(isAnswer)="data">
-                  <div v-if="data.item.isAnswer == true" class="text-success">Answer</div>
-                  <div v-else class="text-warning">Wait for answer</div>
-                </template>
-                <template v-slot:cell(id)="data">
-                  <div class="d-flex justify-content-center">
-                    <b-button
-                      variant="link"
-                      class="text-body text-underline"
-                      @click="editQuestion(data.item.id)"
-                    >View</b-button>
-                  </div>
-                </template>
-                <template v-slot:table-busy>
-                  <div class="text-center text-black my-2">
-                    <b-spinner class="align-middle"></b-spinner>
-                    <strong class="ml-2">Loading...</strong>
-                  </div>
-                </template>
-              </b-table>
+          <div class="form-check mb-2">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              value
+              id="all"
+              :checked="checkAll"
+              @click="checkAllVerifyStatus()"
+              v-model="selectAllVerifyCb"
+            />
+            <label class="form-check-label" for="all">All</label>
+          </div>
+          <div class="row">
+            <div class="col-6">
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  v-model="filterQuestion.verifyStatus"
+                  type="checkbox"
+                  value="1"
+                  id="verify1"
+                  @change="checkVerifyLength"
+                />
+                <label class="form-check-label" for="verify1">Verified</label>
+              </div>
             </div>
-            <b-row>
-              <b-col class="form-inline justify-content-center justify-content-md-between">
-                <b-pagination
-                  v-model="filterQuestion.pageNo"
-                  :total-rows="rows"
-                  :per-page="filterQuestion.perPage"
-                  class="m-md-0"
-                  @change="paginationQuestion"
-                ></b-pagination>
-                <b-form-select
-                  @change="hanndleChangePerpageQuestion"
-                  v-model="filterQuestion.perPage"
-                  :options="pageOptions"
-                ></b-form-select>
-              </b-col>
-            </b-row>
-          </b-col>
-        </b-row>
-      </form>
+            <div class="col-6">
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  v-model="filterQuestion.verifyStatus"
+                  type="checkbox"
+                  value="0"
+                  id="verify2"
+                  @change="checkVerifyLength"
+                />
+                <label class="form-check-label" for="verify2">Not Verified</label>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <p class="font-weight-bold mt-3 mb-2">Answer Status</p>
+          </div>
+
+          <div class="form-check mb-2">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              value
+              id="allAnswer"
+              :checked="checkAll"
+              @click="checkAllAnswerStatus()"
+              v-model="selectAllAnswerCb"
+            />
+            <label class="form-check-label" for="allAnswer">All</label>
+          </div>
+          <div class="row">
+            <div class="col-6">
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  v-model="filterQuestion.answerStatus"
+                  type="checkbox"
+                  value="1"
+                  id="ans1"
+                  @change="checkAnswerLength"
+                />
+                <label class="form-check-label" for="ans1">Answer</label>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  v-model="filterQuestion.answerStatus"
+                  type="checkbox"
+                  value="0"
+                  id="ans2"
+                  @change="checkAnswerLength"
+                />
+                <label class="form-check-label" for="ans2">Wait for answer</label>
+              </div>
+            </div>
+          </div>
+
+          <b-row class="no-gutters">
+            <b-col>
+              <div class="my-3">
+                <p class="font-weight-bold mb-2">Sort By</p>
+              </div>
+
+              <b-form-select
+                v-model="filterQuestion.sortByDateTime"
+                :options="optionsQuestion"
+                class="sortByDropdown"
+              ></b-form-select>
+            </b-col>
+          </b-row>
+
+          <div class="text-center mt-5">
+            <button
+              type="button"
+              class="btn bg-main-color text-white button"
+              @click="getQuestionDataByFilter()"
+            >Submit</button>
+          </div>
+        </div>
+      </b-sidebar>
+      <b-row class="no-gutters bg-white-border mt-3">
+        <b-col class="px-4 px-sm-5 py-4">
+          <b-row class="no-gutters mb-3">
+            <b-col lg="6">
+              <b-input-group class="panel-input-serach">
+                <b-form-input
+                  class="input-serach"
+                  @keyup="handleSearch"
+                  v-model="filterQuestion.search"
+                  placeholder="Product Name"
+                ></b-form-input>
+                <b-input-group-prepend>
+                  <span class="icon-input m-auto pr-2">
+                    <font-awesome-icon icon="search" />
+                  </span>
+                </b-input-group-prepend>
+              </b-input-group>
+            </b-col>
+          </b-row>
+          <div>
+            <b-table
+              striped
+              responsive
+              hover
+              :items="questionitems"
+              :fields="questionFields"
+              :busy="isBusyQuestion"
+              show-empty
+              empty-text="No matching records found"
+            >
+              <template v-slot:cell(productName)="data">
+                <router-link :to="'/product/details/'+data.item.productId">
+                  <p class="mb-0 nobreak two-lines">{{data.item.productName}}</p>
+                </router-link>
+              </template>
+              <template v-slot:cell(questionTime)="data">
+                <span>{{ new Date(data.item.questionTime) | moment($formatDate) }}</span>
+              </template>
+              <template v-slot:cell(isVerify)="data">
+                <div v-if="data.item.isVerify == true" class="text-success">Verified</div>
+                <div v-else class="text-danger">Not Verified</div>
+              </template>
+              <template v-slot:cell(questionBy)="data">
+                <div v-if="data.item.questionBy == ' ' || data.item.questionBy == null">-</div>
+                <div v-else>{{data.item.questionBy}}</div>
+              </template>
+              <template v-slot:cell(isAnswer)="data">
+                <div v-if="data.item.isAnswer == true" class="text-success">Answer</div>
+                <div v-else class="text-warning">Wait for answer</div>
+              </template>
+              <template v-slot:cell(id)="data">
+                <div class="d-flex justify-content-center">
+                  <b-button
+                    variant="link"
+                    class="text-body text-underline"
+                    @click="editQuestion(data.item.id)"
+                  >View</b-button>
+                </div>
+              </template>
+              <template v-slot:table-busy>
+                <div class="text-center text-black my-2">
+                  <b-spinner class="align-middle"></b-spinner>
+                  <strong class="ml-2">Loading...</strong>
+                </div>
+              </template>
+            </b-table>
+          </div>
+          <b-row>
+            <b-col class="form-inline justify-content-center justify-content-md-between">
+              <b-pagination
+                v-model="filterQuestion.pageNo"
+                :total-rows="rows"
+                :per-page="filterQuestion.perPage"
+                class="m-md-0"
+                @change="paginationQuestion"
+              ></b-pagination>
+              <b-form-select
+                @change="hanndleChangePerpageQuestion"
+                v-model="filterQuestion.perPage"
+                :options="pageOptions"
+              ></b-form-select>
+            </b-col>
+          </b-row>
+        </b-col>
+      </b-row>
 
       <b-modal
         id="questionModal"
@@ -293,7 +309,7 @@ export default {
   components: {
     ModalAlert,
     HeaderLine,
-    InputTextArea
+    InputTextArea,
   },
   data() {
     return {
@@ -317,59 +333,60 @@ export default {
         { value: 10, text: "10 / page" },
         { value: 30, text: "30 / page" },
         { value: 50, text: "50 / page" },
-        { value: 100, text: "100 / page" }
+        { value: 100, text: "100 / page" },
       ],
       optionsQuestion: [
-        { value: 0, text: "Earliest - Latest" },
-        { value: 1, text: "Latest - Earliest" }
+        { value: 0, text: "Oldest - Latest" },
+        { value: 1, text: "Latest - Oldest" },
       ],
       sortByDefaultOptions: [
         { value: 0, text: "Please select an option" },
         { value: 1, text: "Sort Order" },
-        { value: 2, text: "Created Time" }
+        { value: 2, text: "Created Time" },
       ],
       questionFields: [
         {
           key: "questionTime",
           label: "Date",
-          class: "w-100px"
+          class: "w-100px",
         },
         {
-          key: "questionTime123",
+          key: "productName",
           label: "Product Name",
-          class: "w-200"
+          class: "w-100px",
         },
         {
           key: "question",
           label: "Question",
-          class: "w-200"
+          class: "w-200",
         },
         {
           key: "questionBy",
           label: "Question by",
-          class: "w-100px"
+          class: "w-100px",
         },
         {
           key: "isVerify",
           label: "Verify Status",
-          class: "w-100px"
+          class: "w-100px",
         },
         {
           key: "isAnswer",
           label: "Answer Status",
-          class: "w-100px"
+          class: "w-100px",
         },
         {
           key: "id",
-          label: "Action"
-        }
+          label: "Action",
+        },
       ],
       filterQuestion: {
         perPage: 10,
         pageNo: 1,
         verifyStatus: [],
         answerStatus: [],
-        sortByDateTime: 0
+        sortByDateTime: 1,
+        search: "",
       },
       questionDetail: {
         id: 0,
@@ -380,41 +397,22 @@ export default {
         questionTime: "0001-01-01T00:00:00",
         updatedTime: "0001-01-01T00:00:00",
         isVerify: false,
-        isAnswer: false
-      }
+        isAnswer: false,
+      },
     };
   },
-  created: async function() {
-    // if (this.id != 0) {
-    //   await this.getQuestionData();
-    // }
+  created: async function () {
+    await this.getQuestionData();
   },
   methods: {
-    moment: function() {
+    moment: function () {
       return moment();
     },
-    handleSearch(e) {
-      if (e.keyCode === 13) {
-        this.filter.pageno = 1;
-        this.getList();
-      }
-    },
-    handleCloseModal: async function() {
-      if (this.flag == 1) {
-        window.location.href = "/product";
-      } else {
-        if (this.id > 0) {
-          this.getQuestionData();
-        } else {
-          window.location.href = "/product";
-        }
-      }
-    },
-    getQuestionData: async function() {
+    getQuestionData: async function () {
       this.isBusyQuestion = true;
       let data = await this.$callApi(
         "post",
-        `${this.$baseUrl}/api/product/questionList/${this.id}`,
+        `${this.$baseUrl}/api/question/list`,
         null,
         this.$headers,
         this.filterQuestion
@@ -422,11 +420,11 @@ export default {
 
       if (data.result == 1) {
         this.questionitems = data.detail.dataList;
-        this.rowsQuestion = data.detail.count;
+        this.rows = data.detail.count;
         this.isBusyQuestion = false;
       }
     },
-    editQuestion: async function(id) {
+    editQuestion: async function (id) {
       let data = await this.$callApi(
         "get",
         `${this.$baseUrl}/api/product/question/${id}`,
@@ -443,13 +441,13 @@ export default {
 
       this.$refs["questionModal"].show();
     },
-    saveQuestion: async function() {
+    saveQuestion: async function () {
       this.isDisable = true;
       let dataModal = {
         id: this.questionDetail.id,
         answer: this.answerVal,
         isVerify: this.questionDetail.isVerify,
-        isAnswer: this.questionDetail.isAnswer
+        isAnswer: this.questionDetail.isAnswer,
       };
 
       let data = await this.$callApi(
@@ -467,6 +465,12 @@ export default {
 
       this.$refs["questionModal"].hide();
     },
+    handleSearch(e) {
+      if (e.keyCode === 13) {
+        this.filterQuestion.pageNo = 1;
+        this.getQuestionData();
+      }
+    },
     paginationQuestion(Page) {
       this.filterQuestion.pageNo = Page;
       this.getQuestionData();
@@ -477,7 +481,7 @@ export default {
       this.getQuestionData();
     },
     getQuestionDataByFilter() {
-      this.$refs.dropdowns.hide(true);
+      this.$refs.filterSidebar.hide(true);
       this.getQuestionData();
     },
     checkVerifyLength() {
@@ -507,7 +511,7 @@ export default {
       } else {
         this.filterQuestion.answerStatus = [1, 0];
       }
-    }
-  }
+    },
+  },
 };
 </script>

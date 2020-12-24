@@ -8,131 +8,17 @@
     <div class="bg-white-border px-4 px-sm-5 py-4 mt-4 text-dark">
       <b-row>
         <b-col md="3">
-          <img src="/img/loading.svg" class="loading" alt="loading" v-if="isLoading" />
-          <button
-            type="button"
-            class="btn btn-main button mb-2 btn-cat"
-            @click="createRootCategory"
-          >Create Root Category</button>
-          <button
-            type="button"
-            class="btn btn-main button btn-cat"
-            @click="createSubCategory"
-          >Create Subcategory</button>
-
-          <div>
-            <template v-for="(item2, key2) in items" class>
-              <div :key="`lv2-${key2}`">
-                <div class="text-left">
-                  <div class="pl-lv2">
-                    <div :class="{ menuactive: isActive(item2.id) }">
-                      <b-button
-                        variant="toggle-tree"
-                        v-if="parentList.indexOf(item2.id) < 0 && item2.categoryList.length > 0"
-                        @click="addParent(item2.id)"
-                        ref="expandAll"
-                        class="mr-2"
-                      >
-                        <font-awesome-icon icon="plus" />
-                      </b-button>
-                      <b-button
-                        variant="toggle-tree"
-                        class="mr-2"
-                        v-if="parentList.indexOf(item2.id) >= 0 && item2.categoryList.length > 0"
-                        @click="deleteParent(item2.id)"
-                      >
-                        <font-awesome-icon icon="minus" />
-                      </b-button>
-                      <span
-                        @click="getCategoryData(item2.id,item2.id)"
-                        v-if="item2.enabled == true"
-                      >{{item2.name}} ({{item2.productCount}})</span>
-                      <span
-                        @click="getCategoryData(item2.id,item2.id)"
-                        v-else
-                        class="text-secondary"
-                      >{{item2.name}} ({{item2.productCount}})</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <template v-for="(item3, key3) in item2.categoryList">
-                <div :key="`lv2-${key2}-lv3-${key3}`" v-if="parentList.indexOf(item2.id) > -1">
-                  <div class="text-left my-2 pl-lv3">
-                    <div :class="{ menuactive: isActive(item3.id) }" class="pl-lv3-box">
-                      <b-button
-                        variant="toggle-tree"
-                        v-if="parentList.indexOf(item3.id) < 0 && item3.categoryList.length > 0"
-                        @click="addParent(item3.id)"
-                        ref="expandAll"
-                      >
-                        <font-awesome-icon icon="plus" />
-                      </b-button>
-                      <b-button
-                        variant="toggle-tree"
-                        v-if="parentList.indexOf(item3.id) >= 0 && item3.categoryList.length > 0"
-                        @click="deleteParent(item3.id)"
-                      >
-                        <font-awesome-icon icon="minus" />
-                      </b-button>
-                      <span
-                        @click="getCategoryData(item3.id,item3.id)"
-                        v-if="item3.enabled == true"
-                      >
-                        <font-awesome-icon
-                          :icon="['fas', 'circle']"
-                          class="circle"
-                          v-if="item3.categoryList.length == 0"
-                        />
-                        {{item3.name}} ({{item3.productCount}})
-                      </span>
-                      <span
-                        @click="getCategoryData(item3.id,item3.id)"
-                        v-else
-                        class="text-secondary"
-                      >
-                        <font-awesome-icon
-                          :icon="['fas', 'circle']"
-                          class="circle"
-                          v-if="item3.categoryList.length == 0"
-                        />
-                        {{item3.name}} ({{item3.productCount}})
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <template v-for="(item4, key4) in item3.categoryList">
-                  <div
-                    :key="`lv2-${key2}-lv3-${key3}-lv3-${key4}`"
-                    v-if="parentList.indexOf(item3.id) > -1"
-                  >
-                    <div class="text-left my-2 pl-lv3">
-                      <div :class="{ menuactive: isActive(item4.id) }" class="pl-lv4-box">
-                        <span
-                          @click="getCategoryData(item4.id,item3.id)"
-                          v-if="item4.enabled == true"
-                        >
-                          <font-awesome-icon :icon="['fas', 'circle']" class="circle" />
-                          {{item4.name}} ({{item4.productCount}})
-                        </span>
-                        <span
-                          @click="getCategoryData(item4.id,item3.id)"
-                          v-else
-                          class="text-secondary"
-                        >
-                          <font-awesome-icon :icon="['fas', 'circle']" class="circle" />
-                          {{item4.name}} ({{item4.productCount}})
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </template>
-              </template>
-            </template>
-          </div>
+          <img src="/img/loading.svg" class="loading" alt="loading" v-if="isLoadingData" />
+          <CategoryList
+            :items="items"
+            :activeItem="activeItem"
+            :parentList="parentList"
+            @handleSetRootCategoryData="createRootCategory"
+            @handleSetSubCategoryData="createSubCategory"
+            @handleGetCategoryData="getCategoryData"
+          />
         </b-col>
-        <b-col md="9" v-if="isLoadingData">
+        <b-col md="9" v-if="isLoadingData" class="vh-100">
           <img src="/img/loading.svg" class="loading" alt="loading" />
         </b-col>
         <b-col md="9" v-else>
@@ -183,17 +69,46 @@
               </div>
             </b-col>
             <b-col md="6">
-              <InputText
-                textFloat="URL Key"
-                placeholder="URL Key"
-                type="text"
-                name="urlkey"
-                isRequired
-                v-model="form.category.urlKey"
-                :isValidate="$v.form.category.urlKey.$error"
-                :v="$v.form.category.urlKey"
-                @onKeyup="onUrlkeyChange"
-              />
+              <div class="position-relative">
+                <InputText
+                  textFloat="URL Key"
+                  placeholder="URL Key"
+                  type="text"
+                  name="urlkey"
+                  isRequired
+                  v-model="form.category.urlKey"
+                  :isValidate="$v.form.category.urlKey.$error"
+                  :v="$v.form.category.urlKey"
+                  @onKeyup="onUrlkeyChange"
+                />
+                <div v-if="form.category.id != 0">
+                  <!-- <a
+                    :href="'http://verite.dosetech.co/categories/'+categoryMainName+'/'+form.category.urlKey+'/All'"
+                    target="_blank"
+                    class="view-txt"
+                    v-if="isSubCategoryLink"
+                  >View</a>
+                  <a
+                    :href="'http://verite.dosetech.co/categories/'+form.category.urlKey+'/All/All'"
+                    target="_blank"
+                    class="view-txt"
+                    v-else
+                  >View</a> -->
+
+                  <a
+                    :href="'https://verite.co.th/categories/'+categoryMainName+'/'+form.category.urlKey+'/All'"
+                    target="_blank"
+                    class="view-txt"
+                    v-if="isSubCategoryLink"
+                  >View</a>
+                  <a
+                    :href="'https://verite.co.th/categories/'+form.category.urlKey+'/All/All'"
+                    target="_blank"
+                    class="view-txt"
+                    v-else
+                  >View</a>
+                </div>
+              </div>
             </b-col>
           </b-row>
 
@@ -275,98 +190,16 @@
           <HeaderLine text="Product list" class="my-4" />
 
           <div class="mt-5">
-            <b-row>
-              <b-col md="6">
-                <b-input-group class="panel-input-serach">
-                  <b-form-input
-                    class="input-serach"
-                    placeholder="Name, SKU"
-                    @keyup="handleSearch"
-                    v-model="filter.search"
-                  ></b-form-input>
-                  <b-input-group-prepend>
-                    <span class="icon-input m-auto pr-2">
-                      <font-awesome-icon icon="search" />
-                    </span>
-                  </b-input-group-prepend>
-                </b-input-group>
-              </b-col>
-              <b-col md="6" class="text-sm-right">
-                <b-form-checkbox
-                  size="lg"
-                  class="mt-3"
-                  v-model="isProductInCategory"
-                  @change="getProductList"
-                >Show only product in this category</b-form-checkbox>
-              </b-col>
-            </b-row>
-
-            <b-row>
-              <b-col class="mt-4 w-100">
-                <b-table
-                  responsive
-                  striped
-                  :fields="fields"
-                  :items="productlist"
-                  :busy="isBusy"
-                  show-empty
-                  empty-text="No matching records found"
-                >
-                  <template v-slot:cell(id)="data">
-                    <b-form-checkbox
-                      size="lg"
-                      class="ml-3"
-                      :value="data.item.id"
-                      v-model="form.productId"
-                    ></b-form-checkbox>
-                  </template>
-                  <template v-slot:cell(imageUrl)="data">
-                    <div class="position-relative">
-                      <div
-                        class="square-box"
-                        v-bind:style="{ 'background-image': 'url(' + data.item.imageUrl + ')' }"
-                      ></div>
-                    </div>
-                  </template>
-                  <template v-slot:cell(name)="data">
-                    <div class>
-                      <div class>
-                        <div class="tag-box tb-new" v-if="data.item.isNew">New</div>
-                        <div class="tag-box tb-hot" v-if="data.item.isHot">Hot</div>
-                      </div>
-                      <p class="mb-0 nobreak two-lines">{{data.item.name}}</p>
-                    </div>
-                  </template>
-                  <template v-slot:cell(price)="data">
-                    <div>
-                      <p class="m-0">{{ data.item.price | numeral('0,0.00') }}</p>
-                    </div>
-                  </template>
-                  <template v-slot:table-busy>
-                    <div class="text-center text-black my-2">
-                      <b-spinner class="align-middle"></b-spinner>
-                      <strong class="ml-2">Loading...</strong>
-                    </div>
-                  </template>
-                </b-table>
-              </b-col>
-            </b-row>
-            <b-row>
-              <b-col class="form-inline justify-content-center justify-content-md-between">
-                <b-pagination
-                  v-model="filter.pageNo"
-                  :total-rows="rows"
-                  :per-page="filter.perPage"
-                  class="m-md-0"
-                  @change="pagination"
-                ></b-pagination>
-                <b-form-select
-                  v-model="filter.perPage"
-                  @change="hanndleChangePerpage"
-                  :options="pageOptions"
-                ></b-form-select>
-              </b-col>
-            </b-row>
+            <ProductList
+              @getProductList="getProductList"
+              :productlist="productlist"
+              :rows="rows"
+              :isBusy="isBusy"
+              :idList="form.productId"
+              @handleChangePagination="pagination"
+              @handleChangePerpage="handleChangePerpage"
+              @handleSearch="handleSearch"
+            />
           </div>
 
           <SEOSection
@@ -419,6 +252,8 @@ import InputSelect from "@/components/inputs/InputSelect";
 import HeaderLine from "@/components/HeaderLine";
 import SEOSection from "@/components/inputs/SEOSection";
 import ModalAlert from "@/components/ModalAlert";
+import CategoryList from "./components/CategoryList";
+import ProductList from "@/components/product/ProductList";
 
 export default {
   name: "Index",
@@ -427,7 +262,9 @@ export default {
     InputSelect,
     HeaderLine,
     SEOSection,
-    ModalAlert
+    ModalAlert,
+    CategoryList,
+    ProductList
   },
   data() {
     return {
@@ -442,22 +279,27 @@ export default {
       checkAll: false,
       isEdit: false,
       isSuccess: false,
-      isLoading: false,
       isLoadingData: true,
       isDisable: false,
       imgModal: null,
       msgModal: null,
-      selectAllCb: false,
       isSubCategory: false,
+      isSubCategoryLink: false,
+      categoryMainName: "",
       imageLogoLang: "",
       languageList: [],
-      selected: [],
       languageActive: 1,
       rows: 0,
       parentList: [],
-      parents: [],
       categorys: [],
       items: {},
+      filter: {
+        perPage: 5,
+        pageNo: 1,
+        search: "",
+        isProductInCategory: 0,
+        productIdList: []
+      },
       productlist: [],
       form: {
         category: {
@@ -502,47 +344,7 @@ export default {
             name: "Best Seller"
           }
         ]
-      },
-      fields: [
-        {
-          key: "id",
-          label: ""
-        },
-        {
-          key: "imageUrl",
-          label: "Thumbnail",
-          class: "w-100px"
-        },
-        {
-          key: "name",
-          label: "Name",
-          class: "w-200",
-          tdClass: "text-left"
-        },
-        {
-          key: "sku",
-          label: "SKU",
-          class: "w-100px"
-        },
-        {
-          key: "price",
-          label: "Price",
-          class: "w-100px"
-        }
-      ],
-      filter: {
-        perPage: 5,
-        pageNo: 1,
-        search: "",
-        isProductInCategory: 0,
-        productIdList: []
-      },
-      pageOptions: [
-        { value: 5, text: "5 / page" },
-        { value: 30, text: "30 / page" },
-        { value: 50, text: "50 / page" },
-        { value: 100, text: "100 / page" }
-      ]
+      }
     };
   },
   validations: {
@@ -575,16 +377,6 @@ export default {
         return true;
       }
     },
-    addParent(ref) {
-      this.parentList.push(ref);
-    },
-    deleteParent(ref) {
-      var index = this.parentList.indexOf(ref);
-      if (index !== -1) this.parentList.splice(index, 1);
-    },
-    isActive: function(menuItem) {
-      return this.activeItem == menuItem;
-    },
     handleChangeCategoryType: async function(value) {
       this.form.category.categoryTypeId = value;
     },
@@ -592,7 +384,7 @@ export default {
       this.form.category.parentId = value;
     },
     getList: async function() {
-      this.isLoading = true;
+      this.isLoadingData = true;
       let languages = await this.$callApi(
         "get",
         `${this.$baseUrl}/api/language`,
@@ -616,9 +408,8 @@ export default {
 
       if (data.result == 1) {
         this.items = data.detail;
-        this.parents.push(this.items.id);
         this.activeItem = this.items[0].id;
-        this.isLoading = false;
+        this.isLoadingData = false;
       }
     },
     getParentCategoryList: async function() {
@@ -656,29 +447,55 @@ export default {
 
           if (this.form.category.parentId == 0) {
             this.isSubCategory = false;
+            this.isSubCategoryLink = false;
           } else {
             this.isSubCategory = true;
+            this.isSubCategoryLink = true;
+
+            var name = this.categorys.find(
+              x => x.id == this.form.category.parentId
+            );
+            if (name != null) {
+              this.categoryMainName = name.urlKey;
+            }
+
+            this.categorys = this.categorys.filter(
+              x => x.id != this.form.category.id
+            );
           }
+        }
+
+        if (this.form.category.isSameLanguage) {
+          this.imageLogoLang = "";
+        } else {
+          var index = this.languageList
+            .map(function(x) {
+              return x.id;
+            })
+            .indexOf(this.languageActive);
+          this.imageLogoLang = this.languageList[index].imageUrl;
         }
       }
 
       this.activeItem = id;
       this.parentIdSelected = parentid;
 
-      console.log(this.parentIdSelected)
-
       await this.getProductList();
     },
-    getProductList: async function() {
+    getProductList: async function(value, page, list) {
       this.isBusy = true;
 
-      Vue.nextTick(() => {
-        if (this.isProductInCategory == true) {
-          this.filter.isProductInCategory = 1;
-        } else {
-          this.filter.isProductInCategory = 0;
-        }
-      });
+      if (list != null) this.form.productId = list;
+
+      if (page != null && this.filter.pageNo != 1) {
+        this.filter.pageNo = 1;
+      }
+
+      if (value == true || value == null) {
+        this.filter.isProductInCategory = 1;
+      } else {
+        this.filter.isProductInCategory = 0;
+      }
 
       this.filter.productIdList = [];
 
@@ -703,6 +520,7 @@ export default {
     useSameLanguage() {
       Vue.nextTick(() => {
         if (this.form.category.isSameLanguage) {
+          this.imageLogoLang = "";
           this.form.category.mainLanguageId = this.languageActive;
           let data = this.form.category.translationList.filter(
             val => val.languageId == this.form.category.mainLanguageId
@@ -727,6 +545,13 @@ export default {
             }
           }
         } else {
+          var index = this.languageList
+            .map(function(x) {
+              return x.id;
+            })
+            .indexOf(this.languageActive);
+          this.imageLogoLang = this.languageList[index].imageUrl;
+
           let data = this.form.category.translationList.filter(
             val => val.languageId != this.form.category.mainLanguageId
           );
@@ -762,21 +587,6 @@ export default {
       this.languageActive = id;
       this.imageLogoLang = this.languageList[index].imageUrl;
     },
-    handleSearch(e) {
-      if (e.keyCode === 13) {
-        this.filter.pageNo = 1;
-        this.getProductList();
-      }
-    },
-    pagination(Page) {
-      this.filter.pageNo = Page;
-      this.getProductList();
-    },
-    hanndleChangePerpage(value) {
-      this.filter.pageNo = 1;
-      this.filter.perpage = value;
-      this.getProductList();
-    },
     checkForm: async function(flag) {
       if (this.form.category.isSameLanguage) {
         await this.useSameLanguage();
@@ -808,7 +618,7 @@ export default {
         this.imgModal = "/img/icon-check-green.png";
         this.msgModal = data.message;
         this.isSuccess = true;
-        this.categoryId = data.detail.categoryId;
+        this.categoryId = data.detail.id;
       } else {
         this.imgModal = "/img/icon-unsuccess.png";
         this.msgModal = data.detail[0];
@@ -824,9 +634,9 @@ export default {
       this.filter.productIdList = [];
       this.getProductList();
     },
-    createSubCategory: async function() {
+    createSubCategory: async function(id) {
       this.isSubCategory = true;
-      await this.getCategoryData(0, this.parentIdSelected);
+      await this.getCategoryData(0, id);
       this.form.category.parentId = this.parentIdSelected;
       this.filter.productIdList = [];
       await this.getProductList();
@@ -844,10 +654,14 @@ export default {
     },
     handleCloseModal: async function() {
       await this.getList();
+      await this.getParentCategoryList();
       this.isProductInCategory = true;
       this.activeItem = this.categoryId;
       this.addParent(this.parentCategoryId);
       await this.getCategoryData(this.categoryId);
+    },
+    addParent(ref) {
+      this.parentList.push(ref);
     },
     deleteData: async function() {
       if (confirm("Are you sure you want to delete this data?") == true) {
@@ -872,56 +686,32 @@ export default {
           }
         }
       }
+    },
+    handleSearch(search, value) {
+      this.filter.search = search;
+      this.filter.pageNo = 1;
+      this.getProductList(this.filter.isProductInCategory);
+    },
+    pagination(Page, value) {
+      this.filter.pageNo = Page;
+      this.getProductList(this.filter.isProductInCategory);
+    },
+    handleChangePerpage(perpage, value) {
+      this.filter.pageNo = 1;
+      this.filter.perpage = perpage;
+      this.getProductList(this.filter.isProductInCategory);
     }
   }
 };
 </script>
 
 <style scoped>
-.pl-lv2 {
-  padding-top: 15px;
-  color: #0d1730;
-  font-size: 16px;
-}
-
-.pl-lv2 span {
-  cursor: pointer;
-}
-
-.pl-lv3 span {
-  margin-top: 10px;
-  margin-bottom: 10px;
-  color: #0d1730;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-.pl-lv3-box,
-.pl-lv3-box .menuactive {
-  padding-left: 10% !important;
-}
-
-.pl-lv4-box,
-.pl-lv4-box .menuactive {
-  padding-left: 20% !important;
-}
-
-.btn-cat {
-  width: 100%;
-}
-
-.menuactive {
-  font-weight: bold;
-  background-color: #321fdb;
-  padding: 3px 0;
-  color: #fff;
-}
-
-.menuactive span {
-  color: #fff;
-}
-
-.circle {
-  width: 5px;
+.view-txt {
+  position: absolute;
+  right: 0;
+  top: 0;
+  text-decoration: underline;
+  color: #707070;
+  z-index: 1;
 }
 </style>

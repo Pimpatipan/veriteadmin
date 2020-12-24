@@ -35,7 +35,18 @@ import {
     faStar,
     faChevronLeft,
     faChevronRight,
-    faHome, faBuilding, faHotel, faCircle, faArrowRight
+    faHome,
+    faBuilding,
+    faHotel,
+    faCircle,
+    faArrowRight,
+    faClipboard,
+    faBox,
+    faHandHoldingUsd,
+    faEllipsisV,
+    faFileInvoice,
+    faCheck,
+    faTimes,
 
 } from '@fortawesome/free-solid-svg-icons'
 import { faStar as faStarFar } from '@fortawesome/free-regular-svg-icons'
@@ -89,7 +100,23 @@ Vue.prototype.$headers = {
 
 Vue.component('font-awesome-icon', FontAwesomeIcon)
 library.add(faStore, faUser, faBullhorn, faSearch, faFilter, faFileUpload, faSortDown, faPencilAlt, faTrashAlt, faTimesCircle, faFileDownload, faEye, faBarcode, faPlus, faMinus, faStar, faStarFar, faChevronLeft,
-    faChevronRight,faHome, faBuilding, faHotel, faCircle,faArrowRight);
+    faChevronRight, faHome, faBuilding, faHotel, faCircle, faArrowRight, faClipboard, faBox, faHandHoldingUsd, faEllipsisV, faFileInvoice, faCheck,
+    faTimes);
+
+let globalData = new Vue({
+    data: {
+        $languages: [],
+    }
+});
+
+Vue.mixin({
+    computed: {
+        $languages: {
+            get: function () { return globalData.$data.$languages },
+            set: function (languages) { globalData.$data.$languages = languages; }
+        }
+    }
+})
 
 router.beforeEach((to, from, next) => {
     if (to.matched.some(record => record.meta.requiresAuth)) {

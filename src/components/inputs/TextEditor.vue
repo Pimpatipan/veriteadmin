@@ -124,7 +124,7 @@ export default {
         imageDefaultAlign: null,
         imageDefaultDisplay: null,
         codeMirror: true,
-        useClasses: false,
+        useClasses: true,
         imageMaxSize: 5 * 1024 * 1024,
         imageAllowedTypes: ["jpeg", "jpg", "png"],
         toolbarButtons: {

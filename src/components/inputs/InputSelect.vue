@@ -15,6 +15,7 @@
       @change="onDataChange"
       :valueField="valueField"
       :textField="textField"
+      :disabled="disabled"
     ></b-form-select>
     <div v-if="v && v.$error">
       <span class="text-error" v-if="v.required == false">{{options[0][textField || 'text']}}</span>
@@ -73,6 +74,10 @@ export default {
     textField: {
       required: false,
       type: String
+    },
+    disabled: {
+      required: false,
+      type: Boolean
     }
   },
   data() {

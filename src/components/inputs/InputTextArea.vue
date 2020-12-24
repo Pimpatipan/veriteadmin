@@ -97,7 +97,7 @@ export default {
 }
 .input-custom > label {
   color: #16274a;
-  font-size: 16px;
+  font-size: 17px;
   margin-bottom: 2px;
   font-weight: bold;
 }

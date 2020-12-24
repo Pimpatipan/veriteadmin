@@ -304,13 +304,9 @@ export default {
   },
   methods: {
     addParent(ref) {
-      // console.log("addParent", ref);
       this.parentList.push(ref);
-
-      console.log(this.parentList)
     },
     deleteParent(ref) {
-      // console.log("deleteParent", ref);
       var index = this.parentList.indexOf(ref);
       if (index !== -1) this.parentList.splice(index, 1);
     },

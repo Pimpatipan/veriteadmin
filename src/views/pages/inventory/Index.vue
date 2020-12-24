@@ -1,18 +1,22 @@
 <template>
   <CContainer class="min-vh-100">
-    <CRow class="w-100 no-gutters">
-      <CCol sm="6" class="text-center text-sm-left">
-        <h1 class="mr-sm-4">INVENTORY MANAGEMENT</h1>
+    <CRow class="no-gutters px-3 px-sm-0">
+      <CCol cols="6">
+        <h1 class="mr-sm-4 header">INVENTORY</h1>
       </CCol>
-      <CCol sm="6" class="text-center text-sm-right">
-        <b-dropdown id="dropdown-1" class="m-md-2 btn-mains small-dropdown" right no-flip>
-          <template v-slot:button-content>ACTION</template>
+      <CCol cols="6" class="text-right">
+        <b-dropdown id="dropdown-1" class="btn-mains small-dropdown" right no-flip>
+          <template v-slot:button-content>
+            <font-awesome-icon icon="ellipsis-v" title="filter-btn" class="text-white d-sm-none" />
+            <span class="d-none d-sm-inline">ACTION</span>
+          </template>
           <b-dropdown-item href="/inventory/importdata">Import Inventory</b-dropdown-item>
           <b-dropdown-item @click="exportData">Export Inventory</b-dropdown-item>
+          <b-dropdown-item @click="downloadTemplate" class="wrap-normal">Download Inventory Template</b-dropdown-item>
         </b-dropdown>
       </CCol>
     </CRow>
-    <div class="bg-white-border px-4 px-sm-5 py-4 mt-4">
+    <div class="bg-white-border px-4 px-sm-5 pb-4 mt-3">
       <b-row class="no-gutters mt-3">
         <b-col lg="6">
           <b-input-group class="panel-input-serach">
@@ -29,7 +33,6 @@
             </b-input-group-prepend>
           </b-input-group>
         </b-col>
-        <b-col lg="6" class="text-center text-sm-right"></b-col>
       </b-row>
       <b-row>
         <b-col class="mt-4 w-100">
@@ -102,6 +105,16 @@
       </b-row>
     </div>
 
+    <ModalAlert
+      v-if="modalAlertShow"
+      :msg="msgModal"
+      :img="imgModal"
+      :isOpen="modalAlertShow"
+      @closeModal="handleCloseModal"
+      :isSuccess="isSuccess"
+      :hideClose="hideClose"
+    />
+
     <b-modal
       id="setStockModal"
       ref="setStockModal"
@@ -150,6 +163,14 @@
                 <span class="text-body pl-3">{{inStockData}}</span>
               </label>
 
+              <InputText
+                textFloat="Note"
+                placeholder="Note"
+                type="text"
+                name="note"
+                v-model="note"
+              />
+
               <p v-if="stockerror" class="text-danger">{{stockMsgError}}</p>
             </b-col>
           </b-row>
@@ -166,11 +187,13 @@
 import InputText from "@/components/inputs/InputText";
 import axios from "axios";
 import * as moment from "moment/moment";
+import ModalAlert from "@/components/ModalAlert";
 
 export default {
   name: "InventoryIndex",
   components: {
-    InputText
+    InputText,
+    ModalAlert
   },
   data() {
     return {
@@ -201,6 +224,7 @@ export default {
       stockMsgError: false,
       stockerror: false,
       isDisable: true,
+      note: "",
       rows: 0,
       setStockType: 0,
       inStockData: 0,
@@ -221,6 +245,9 @@ export default {
       checkAll: false,
       selectAllCb: false,
       cbHighlight: false,
+      modalAlertShow: false,
+      imgModal: null,
+      msgModal: null,
       selected: 0
     };
   },
@@ -228,6 +255,9 @@ export default {
     await this.getList();
   },
   methods: {
+    handleCloseModal: function() {
+      this.modalAlertShow = false;
+    },
     isNumber: function(evt) {
       evt = evt ? evt : window.event;
       var charCode = evt.which ? evt.which : evt.keyCode;
@@ -264,7 +294,7 @@ export default {
       this.getList();
     },
     getDataByStatus() {
-      this.$refs.dropdown.hide(true);
+      this.$refs.filterSidebar.hide(true);
       this.getList();
     },
     checkStatusLength() {
@@ -313,7 +343,8 @@ export default {
       let modalData = {
         productId: this.productid,
         quantity: this.newStock,
-        actionId: this.setStockType
+        actionId: this.setStockType,
+        note: this.note
       };
 
       let data = await this.$callApi(
@@ -332,25 +363,79 @@ export default {
       }
     },
     exportData: async function() {
+      this.modalAlertShow = true;
+      this.imgModal = "/img/loading.svg";
+      this.msgModal = "In progress. Exporting Data...";
+      this.isSuccess = true;
+      this.hideClose = true;
+
       axios({
         url: `${this.$baseUrl}/api/inventory/exportInventory`,
         method: "post",
         headers: this.$headers,
         responseType: "blob",
         data: this.filter
-      }).then(response => {
-        var fileURL = window.URL.createObjectURL(new Blob([response.data]));
-        var fileLink = document.createElement("a");
-        var dateExcel = moment().format("DDMMYYYYhhmmss");
+      })
+        .then(response => {
+          var fileURL = window.URL.createObjectURL(new Blob([response.data]));
+          var fileLink = document.createElement("a");
+          var dateExcel = moment().format("DDMMYYYYhhmmss");
 
-        fileLink.href = fileURL;
-        fileLink.setAttribute(
-          "download",
-          `Inventory-List-` + dateExcel + `.xlsx`
-        );
-        document.body.appendChild(fileLink);
-        fileLink.click();
-      });
+          this.modalAlertShow = false;
+
+          fileLink.href = fileURL;
+          fileLink.setAttribute(
+            "download",
+            `Inventory-List-` + dateExcel + `.xlsx`
+          );
+          document.body.appendChild(fileLink);
+          fileLink.click();
+        })
+        .catch(error => {
+          if (error.response.status === 500) {
+            this.imgModal = "/img/icon-unsuccess.png";
+            this.msgModal =
+              "Internal Server Error. Please contact system administrator";
+            this.hideClose = false;
+          }
+        });
+    },
+    downloadTemplate: async function() {
+      this.modalAlertShow = true;
+      this.imgModal = "/img/loading.svg";
+      this.msgModal = "In progress. Exporting Data...";
+      this.isSuccess = true;
+      this.hideClose = true;
+
+      axios({
+        url: `${this.$baseUrl}/api/inventory/exportInventoryTemplate`,
+        method: "get",
+        headers: this.$headers,
+        responseType: "blob"
+      })
+        .then(response => {
+          var fileURL = window.URL.createObjectURL(new Blob([response.data]));
+          var fileLink = document.createElement("a");
+          var dateExcel = moment().format("DDMMYYYYhhmmss");
+
+          this.modalAlertShow = false;
+
+          fileLink.href = fileURL;
+          fileLink.setAttribute(
+            "download",
+            `Inventory-Template-List-` + dateExcel + `.xlsx`
+          );
+          document.body.appendChild(fileLink);
+          fileLink.click();
+        })
+        .catch(error => {
+          if (error.response.status === 500) {
+            this.imgModal = "/img/icon-unsuccess.png";
+            this.msgModal =
+              "Internal Server Error. Please contact system administrator";
+            this.hideClose = false;
+          }
+        });
     }
   }
 };

@@ -9,7 +9,7 @@
         </b-row>
 
         <b-row class="no-gutters bg-white-border mt-4">
-          <b-col class="px-4 px-sm-5 py-4" v-if="isLoadingData">
+          <b-col class="px-4 px-sm-5 py-4 vh-100" v-if="isLoadingData">
             <img src="/img/loading.svg" class="loading" alt="loading" />
           </b-col>
           <b-col class="px-4 px-sm-5 py-4" v-else>
@@ -110,15 +110,14 @@
                   @click="deleteData()"
                   v-if="isEdit"
                   :disabled="isDisable"
-                >REMOVE</b-button> -->
-                <router-link :to="{ path: '/faq/details/'+ this.faqTopicId}" >
-                  <b-button class="btn-details-set " :disabled="isDisable">BACK</b-button>
+                >REMOVE</b-button>-->
+                <router-link :to="{ path: '/faq/details/'+ this.faqTopicId}">
+                  <b-button class="btn-details-set" :disabled="isDisable">BACK</b-button>
                 </router-link>
               </b-col>
               <b-col md="6" class="text-sm-right">
                 <button
                   type="button"
-                  v-if="isEdit"
                   @click="checkForm(0)"
                   :disabled="isDisable"
                   class="btn btn-success btn-details-set ml-md-2 text-uppercase"
@@ -173,6 +172,7 @@ export default {
       msgModal: null,
       languageList: [],
       imageLogoLang: "",
+      existId: "",
       languageActive: 1,
       faqTopicId: 0,
       modalAlertShow: false,
@@ -233,7 +233,10 @@ export default {
         if (this.id > 0) {
           this.getDatas();
         } else {
-          window.location.href = `/faq/details/${this.faqTopicId}`;
+          this.form.faq.id = this.existId;
+          this.id = this.existId;
+          this.isEdit = true;
+          this.$router.push({ path: `/faq/details/question/${this.existId}` });
         }
       }
     },
@@ -264,9 +267,20 @@ export default {
         this.form = data.detail;
         this.isLoadingData = false;
         this.$v.form.$reset();
-        
+
         if (this.form.faq.id > 0) {
           this.isEdit = true;
+        }
+
+        if (this.form.faq.isSameLanguage) {
+          this.imageLogoLang = "";
+        } else {
+          var index = this.languageList
+            .map(function(x) {
+              return x.id;
+            })
+            .indexOf(this.languageActive);
+          this.imageLogoLang = this.languageList[index].imageUrl;
         }
       }
 
@@ -306,6 +320,7 @@ export default {
         this.imgModal = "/img/icon-check-green.png";
         this.msgModal = data.message;
         this.isSuccess = true;
+         this.existId = data.detail.id;
       } else {
         this.imgModal = "/img/icon-unsuccess.png";
         this.msgModal = data.message;
@@ -317,6 +332,7 @@ export default {
     useSameLanguage: async function() {
       Vue.nextTick(() => {
         if (this.form.faq.isSameLanguage) {
+          this.imageLogoLang = "";
           this.form.faq.mainLanguageId = this.languageActive;
           let data = this.form.faq.translationList.filter(
             val => val.languageId == this.form.faq.mainLanguageId
@@ -336,6 +352,13 @@ export default {
             }
           }
         } else {
+          var index = this.languageList
+            .map(function(x) {
+              return x.id;
+            })
+            .indexOf(this.languageActive);
+          this.imageLogoLang = this.languageList[index].imageUrl;
+
           let data = this.form.faq.translationList.filter(
             val => val.languageId != this.form.faq.mainLanguageId
           );

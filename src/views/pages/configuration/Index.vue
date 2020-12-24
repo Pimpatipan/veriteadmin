@@ -9,36 +9,87 @@
         </b-row>
 
         <b-row class="no-gutters bg-white-border mt-4">
-          <b-col class="px-4 px-sm-5 py-4" v-if="isLoadingData">
+          <b-col class="px-4 px-sm-5 py-4 vh-100" v-if="isLoadingData">
             <img src="/img/loading.svg" class="loading" alt="loading" />
           </b-col>
 
           <b-col class="px-4 px-sm-5 py-4" v-else>
+            <HeaderLine text="Infomation" class="mb-4" />
+
+            <b-row>
+              <b-col md="6">
+                <InputText
+                  textFloat="Telephone"
+                  placeholder="Telephone"
+                  type="text"
+                  name="tel"
+                  isRequired
+                  @onKeypress="isNumber($event)"
+                  v-model="form.telephone"
+                  :isValidate="$v.form.telephone.$error"
+                  :v="$v.form.telephone"
+                />
+              </b-col>
+              <b-col md="6">
+                <InputText
+                  textFloat="Customer Service"
+                  placeholder="Customer Service"
+                  type="text"
+                  name="customerservice"
+                  isRequired
+                  v-model="form.customerServiceEmail"
+                  :isValidate="$v.form.customerServiceEmail.$error"
+                  :v="$v.form.customerServiceEmail"
+                />
+              </b-col>
+            </b-row>
+
             <HeaderLine text="Order" class="mb-4" />
 
             <b-row>
               <b-col md="6">
-                <label class="label-text">
-                  Order Expire Day
-                  <span class="text-danger">*</span>
-                </label>
-                <datetime placeholder="Please select date" class="date-picker" format="dd/MM/yyyy"></datetime>
+                <InputText
+                  textFloat="Order Expire Day"
+                  placeholder="Order Expire Day"
+                  type="text"
+                  name="expireday"
+                  isRequired
+                  @onKeypress="isNumber($event)"
+                  v-model="form.configDay.orderExpireDay"
+                  :isValidate="$v.form.configDay.orderExpireDay.$error"
+                  :v="$v.form.configDay.orderExpireDay"
+                />
               </b-col>
               <b-col md="6">
-                <label class="label-text">Review Email Day</label>
-                <datetime placeholder="Please select date" class="date-picker" format="dd/MM/yyyy"></datetime>
+                <InputText
+                  textFloat="Review Email Day"
+                  placeholder="Review Email Day"
+                  type="text"
+                  name="reviewday"
+                  isRequired
+                  @onKeypress="isNumber($event)"
+                  v-model="form.configDay.orderReviewDay"
+                  :isValidate="$v.form.configDay.orderReviewDay.$error"
+                  :v="$v.form.configDay.orderReviewDay"
+                />
               </b-col>
             </b-row>
 
-            <b-row>
+            <!-- <b-row>
               <b-col md="6">
-                <label class="label-text">
-                  Pending Payment Day
-                  <span class="text-danger">*</span>
-                </label>
-                <datetime placeholder="Please select date" class="date-picker" format="dd/MM/yyyy"></datetime>
+                <InputText
+                  textFloat="Pending Payment Day"
+                  placeholder="Pending Payment Day"
+                  type="text"
+                  name="paymentday"
+                  isRequired
+                  @onKeypress="isNumber($event)"
+                  v-model="form.configDay.pendingPaymentDay"
+                  :isValidate="$v.form.configDay.pendingPaymentDay.$error"
+                  :v="$v.form.configDay.pendingPaymentDay"
+                />
               </b-col>
-            </b-row>
+            </b-row> -->
 
             <HeaderLine text="Email Notification" class="my-4" />
 
@@ -50,6 +101,9 @@
                   type="text"
                   name="email"
                   isRequired
+                  v-model="form.senderEmail.email"
+                  :isValidate="$v.form.senderEmail.email.$error"
+                  :v="$v.form.senderEmail.email"
                 />
               </b-col>
               <b-col md="6">
@@ -58,23 +112,14 @@
                   placeholder="Sender Email Password"
                   type="password"
                   name="password"
+                  v-model="form.senderEmail.password"
+                  :isValidate="$v.form.senderEmail.password.$error"
+                  :v="$v.form.senderEmail.password"
                 />
               </b-col>
             </b-row>
 
-            <b-row>
-              <b-col md="6">
-                <InputText
-                  textFloat="Customer Support Email"
-                  placeholder="Customer Support Email"
-                  type="text"
-                  name="csemail"
-                  isRequired
-                />
-              </b-col>
-            </b-row>
-
-            <b-row class="mt-3">
+            <b-row class="mt-5">
               <b-col md="6">
                 <!-- <b-button href="/storetype" class="btn-details-set">CANCEL</b-button> -->
               </b-col>
@@ -106,6 +151,7 @@
 import InputText from "@/components/inputs/InputText";
 import ModalAlert from "@/components/ModalAlert";
 import HeaderLine from "@/components/HeaderLine";
+import { required,minLength } from "vuelidate/lib/validators";
 
 export default {
   name: "Configuration",
@@ -120,11 +166,41 @@ export default {
       isLoadingData: false,
       imgModal: null,
       msgModal: null,
-      modalAlertShow: false
+      modalAlertShow: false,
+      form: {
+        configDay: {
+          id: 0,
+          orderExpireDay: 0,
+          orderReviewDay: 0,
+          pendingPaymentDay: 0
+        },
+        senderEmail: {
+          id: 0,
+          email: "",
+          password: null
+        },
+        telephone: "",
+        customerServiceEmail: ""
+      }
     };
   },
+  validations: {
+    form: {
+      configDay: {
+        orderExpireDay: { required },
+        orderReviewDay: { required },
+        pendingPaymentDay: { required }
+      },
+      senderEmail: {
+        email: { required },
+        password: { minLength: minLength(6) }
+      },
+      telephone: { required },
+      customerServiceEmail: { required }
+    }
+  },
   created: async function() {
-    //await this.getDatas();
+    await this.getDatas();
   },
   methods: {
     isNumber: function(evt) {
@@ -144,7 +220,7 @@ export default {
 
       let data = await this.$callApi(
         "get",
-        `${this.$baseUrl}/api/skinConsultWeb`,
+        `${this.$baseUrl}/api/Configuration`,
         null,
         this.$headers,
         null
@@ -154,17 +230,11 @@ export default {
         this.form = data.detail;
         this.isLoadingData = false;
         this.$v.form.$reset();
-
-        this.showPreview = this.form.skinConsultWeb.imageUrl;
       }
     },
     checkForm: async function(flag) {
-      if (this.form.skinConsultWeb.isSameLanguage) {
-        await this.useSameLanguage();
-      }
       this.$v.form.$touch();
       if (this.$v.form.$error) {
-        await this.checkValidateTranslationList();
         return;
       }
       this.modalAlertShow = false;
@@ -176,7 +246,7 @@ export default {
 
       let data = await this.$callApi(
         "post",
-        `${this.$baseUrl}/api/skinConsultWeb/save`,
+        `${this.$baseUrl}/api/Configuration/saveConfiguration`,
         null,
         this.$headers,
         this.form

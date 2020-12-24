@@ -4,129 +4,141 @@
       <b-row class="no-gutters bg-white-border">
         <b-col class="px-4 px-sm-5 py-4 mt-3">
           <b-row>
-            <b-col sm="6">
-              <div class="float-sm-left p-rt-5 py-3 py-sm-0">
-                <p class="font-weight-bold mb-1 text-body text-left">Sort By</p>
-                <b-form-select
-                  v-model="filterQuestion.sortByDateTime"
-                  :options="optionsQuestion"
-                  class="sortByDropdown"
-                  @change="getQuestionData"
-                ></b-form-select>
-              </div>
-            </b-col>
-            <b-col sm="6" class="text-center text-sm-right">
-              <b-dropdown
-                id="dropdown-form"
-                right
-                ref="dropdowns"
-                class="my-2 my-sm-3 mr-2 btn-filter"
-                no-flip
-              >
-                <template v-slot:button-content>
-                  <font-awesome-icon icon="filter" class="mr-2" />FILTER
-                </template>
-
-                <div>
-                  <p class="font-weight-bold mt-3 mb-2">Verify Status</p>
-                </div>
-
-                <div class="form-check mb-2">
-                  <input
-                    class="form-check-input"
-                    type="checkbox"
-                    value
-                    id="all"
-                    :checked="checkAll"
-                    @click="checkAllVerifyStatus()"
-                    v-model="selectAllVerifyCb"
-                  />
-                  <label class="form-check-label" for="all">All</label>
-                </div>
-                <div class="row">
-                  <div class="col-sm-6">
-                    <div class="form-check">
-                      <input
-                        class="form-check-input"
-                        v-model="filterQuestion.verifyStatus"
-                        type="checkbox"
-                        value="1"
-                        id="verify1"
-                        @change="checkVerifyLength"
-                      />
-                      <label class="form-check-label" for="verify1">Verified</label>
-                    </div>
-                  </div>
-                  <div class="col-sm-6">
-                    <div class="form-check mt-2 mt-sm-0">
-                      <input
-                        class="form-check-input"
-                        v-model="filterQuestion.verifyStatus"
-                        type="checkbox"
-                        value="0"
-                        id="verify2"
-                        @change="checkVerifyLength"
-                      />
-                      <label class="form-check-label" for="verify2">Not Verified</label>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <p class="font-weight-bold mt-3 mb-2">Answer Status</p>
-                </div>
-
-                <div class="form-check mb-2">
-                  <input
-                    class="form-check-input"
-                    type="checkbox"
-                    value
-                    id="allAnswer"
-                    :checked="checkAll"
-                    @click="checkAllAnswerStatus()"
-                    v-model="selectAllAnswerCb"
-                  />
-                  <label class="form-check-label" for="allAnswer">All</label>
-                </div>
-                <div class="row">
-                  <div class="col-sm-6">
-                    <div class="form-check">
-                      <input
-                        class="form-check-input"
-                        v-model="filterQuestion.answerStatus"
-                        type="checkbox"
-                        value="1"
-                        id="ans1"
-                        @change="checkAnswerLength"
-                      />
-                      <label class="form-check-label" for="ans1">Answer</label>
-                    </div>
-                  </div>
-                  <div class="col-sm-6">
-                    <div class="form-check mt-2 mt-sm-0">
-                      <input
-                        class="form-check-input"
-                        v-model="filterQuestion.answerStatus"
-                        type="checkbox"
-                        value="0"
-                        id="ans2"
-                        @change="checkAnswerLength"
-                      />
-                      <label class="form-check-label" for="ans2">Wait for answer</label>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="text-center mt-3">
-                  <button
-                    type="button"
-                    class="btn btn-primary button"
-                    @click="getQuestionDataByFilter()"
-                  >Submit</button>
-                </div>
-              </b-dropdown>
+            <b-col sm="6"></b-col>
+            <b-col sm="6" class="text-sm-right">
+              <b-button v-b-toggle.sidebar-1 class="btn-filter">
+                <font-awesome-icon
+                  icon="filter"
+                  title="filter-btn"
+                  class="text-white mr-0 mr-sm-1"
+                />
+                <span class="d-none d-sm-inline">FILTER</span>
+              </b-button>
             </b-col>
           </b-row>
+          <b-sidebar
+            id="sidebar-1"
+            title="FILTER"
+            backdrop
+            shadow
+            backdrop-variant="dark"
+            right
+            ref="filterSidebar"
+          >
+            <div class="px-3 py-2">
+              <div>
+                <p class="font-weight-bold mt-3 mb-2">Verify Status</p>
+              </div>
+
+              <div class="form-check mb-2">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  value
+                  id="all"
+                  :checked="checkAll"
+                  @click="checkAllVerifyStatus()"
+                  v-model="selectAllVerifyCb"
+                />
+                <label class="form-check-label" for="all">All</label>
+              </div>
+              <div class="row">
+                <div class="col-6">
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      v-model="filterQuestion.verifyStatus"
+                      type="checkbox"
+                      value="1"
+                      id="verify1"
+                      @change="checkVerifyLength"
+                    />
+                    <label class="form-check-label" for="verify1">Verified</label>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      v-model="filterQuestion.verifyStatus"
+                      type="checkbox"
+                      value="0"
+                      id="verify2"
+                      @change="checkVerifyLength"
+                    />
+                    <label class="form-check-label" for="verify2">Not Verified</label>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <p class="font-weight-bold mt-3 mb-2">Answer Status</p>
+              </div>
+
+              <div class="form-check mb-2">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  value
+                  id="allAnswer"
+                  :checked="checkAll"
+                  @click="checkAllAnswerStatus()"
+                  v-model="selectAllAnswerCb"
+                />
+                <label class="form-check-label" for="allAnswer">All</label>
+              </div>
+              <div class="row">
+                <div class="col-6">
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      v-model="filterQuestion.answerStatus"
+                      type="checkbox"
+                      value="1"
+                      id="ans1"
+                      @change="checkAnswerLength"
+                    />
+                    <label class="form-check-label" for="ans1">Answer</label>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      v-model="filterQuestion.answerStatus"
+                      type="checkbox"
+                      value="0"
+                      id="ans2"
+                      @change="checkAnswerLength"
+                    />
+                    <label class="form-check-label" for="ans2">Wait for answer</label>
+                  </div>
+                </div>
+              </div>
+
+              <b-row class="no-gutters mt-3">
+                <b-col>
+                  <div class="mb-3">
+                    <p class="font-weight-bold mb-2">Sort By</p>
+                  </div>
+
+                  <b-form-select
+                    v-model="filterQuestion.sortByDateTime"
+                    :options="optionsQuestion"
+                    class="sortByDropdown"
+                  ></b-form-select>
+                </b-col>
+              </b-row>
+
+              <div class="text-center mt-5">
+                <button
+                  type="button"
+                  class="btn bg-main-color text-white button"
+                  @click="getQuestionDataByFilter()"
+                >Submit</button>
+              </div>
+            </div>
+          </b-sidebar>
           <div class="mt-4">
             <b-table
               striped
@@ -145,10 +157,10 @@
                 <div v-if="data.item.isVerify == true" class="text-success">Verified</div>
                 <div v-else class="text-danger">Not Verified</div>
               </template>
-               <template v-slot:cell(questionBy)="data">
-              <div v-if="data.item.questionBy == ' '">-</div>
-              <div v-else>{{data.item.questionBy}}</div>
-            </template>
+              <template v-slot:cell(questionBy)="data">
+                <div v-if="data.item.questionBy == ' '">-</div>
+                <div v-else>{{data.item.questionBy}}</div>
+              </template>
               <template v-slot:cell(isAnswer)="data">
                 <div v-if="data.item.isAnswer == true" class="text-success">Answer</div>
                 <div v-else class="text-warning">Wait for answer</div>
@@ -310,8 +322,8 @@ export default {
         { value: 100, text: "100 / page" }
       ],
       optionsQuestion: [
-        { value: 0, text: "Earliest - Latest" },
-        { value: 1, text: "Latest - Earliest" }
+        { value: 0, text: "Oldest - Latest" },
+        { value: 1, text: "Latest - Oldest" }
       ],
       sortByDefaultOptions: [
         { value: 0, text: "Please select an option" },
@@ -354,7 +366,7 @@ export default {
         pageNo: 1,
         verifyStatus: [],
         answerStatus: [],
-        sortByDateTime: 0
+        sortByDateTime: 1
       },
       questionDetail: {
         id: 0,
@@ -456,7 +468,7 @@ export default {
       this.getQuestionData();
     },
     getQuestionDataByFilter() {
-      this.$refs.dropdowns.hide(true);
+      this.$refs.filterSidebar.hide(true);
       this.getQuestionData();
     },
     checkVerifyLength() {

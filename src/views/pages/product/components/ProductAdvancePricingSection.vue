@@ -2,7 +2,7 @@
   <div>
     <form class="form-box">
       <b-row class="no-gutters bg-white-border">
-        <b-col class="px-4 px-sm-5 py-4" v-if="isLoadingData">
+        <b-col class="px-4 px-sm-5 py-4 vh-100" v-if="isLoadingData">
           <img src="/img/loading.svg" class="loading" alt="loading" />
         </b-col>
         <b-col class="px-4 px-sm-5 py-4" v-else>
@@ -70,7 +70,6 @@
                 class="btn btn-success btn-details-set ml-md-2 text-uppercase"
                 @click="checkAdvancePricing(0)"
                 :disabled="isDisable"
-                v-if="isEdit"
               >Save</button>
               <button
                 type="button"
@@ -175,12 +174,13 @@ export default {
         if (this.id > 0) {
           this.getAdvancePricing();
         } else {
-          window.location.href = "/product";
+          this.id = this.existId;
+          if (this.$route.params.id != 0) this.getAdvancePricing();
         }
       }
     },
     getAdvancePricing: async function() {
-       this.isLoadingData = true;
+      this.isLoadingData = true;
 
       let adprice = await this.$callApi(
         "get",
@@ -207,9 +207,11 @@ export default {
       this.modalAlertShow = false;
       this.flag = flag;
 
-      if (this.id == 0) {
-        this.$refs["modalFail"].show();
-        return;
+      if (this.$route.params.id == 0) {
+        if (this.id == 0) {
+          this.$refs["modalFail"].show();
+          return;
+        }
       }
 
       this.$v.adprices.$touch();
@@ -226,7 +228,16 @@ export default {
     },
     saveAdvancePricing: async function() {
       this.isDisable = true;
-      this.adprices.productId = this.id;
+
+      if (this.$route.params.id != 0)
+        this.adprices.productId = this.$route.params.id;
+
+      this.adprices.startDate = moment(this.adprices.startDate).format(
+        "YYYY-MM-DD[T]HH:mm:ss"
+      );
+      this.adprices.endDate = moment(this.adprices.endDate).format(
+        "YYYY-MM-DD[T]HH:mm:ss"
+      );
 
       let data = await this.$callApi(
         "post",
@@ -241,6 +252,7 @@ export default {
         this.imgModal = "/img/icon-check-green.png";
         this.msgModal = data.message;
         this.isSuccess = true;
+        this.existId = this.$route.params.id;
       } else {
         this.imgModal = "/img/icon-unsuccess.png";
         this.msgModal = data.detail[0];
@@ -251,6 +263,8 @@ export default {
     },
     deleteAdvancePricing: async function() {
       if (confirm("Are you sure you want to delete this data?") == true) {
+        if (this.$route.params.id != 0) this.id = this.$route.params.id;
+
         let data = await this.$callApi(
           "delete",
           `${this.$baseUrl}/api/product/removeAdvancePrice/${this.id}`,

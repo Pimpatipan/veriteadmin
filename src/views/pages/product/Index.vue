@@ -1,136 +1,161 @@
 <template>
   <CContainer class="min-vh-100">
-    <CRow class="w-100 no-gutters">
-      <CCol lg="6" class="text-center text-lg-left">
-        <h1 class="mr-sm-4">PRODUCT MANAGEMENT</h1>
-      </CCol>
-      <CCol lg="6" class="text-center text-lg-right">
-        <b-dropdown id="dropdown-1" class="my-md-2 btn-mains small-dropdown" right no-flip>
-          <template v-slot:button-content>ACTION</template>
+    <CRow class="no-gutters px-3 px-sm-0">
+      <b-col cols="6" sm="4">
+        <h1 class="mr-sm-4 header">PRODUCT</h1>
+      </b-col>
+      <b-col cols="6" sm="8" class="text-right">
+        <b-dropdown id="dropdown-1" class="btn-mains small-dropdown mr-2" right no-flip>
+          <template v-slot:button-content>
+            <font-awesome-icon icon="ellipsis-v" title="filter-btn" class="text-white d-sm-none" />
+            <span class="d-none d-sm-inline">ACTION</span>
+          </template>
           <b-dropdown-item href="/product/importdata">Import Data</b-dropdown-item>
           <b-dropdown-item @click="exportData">Export Data</b-dropdown-item>
+          <b-dropdown-item @click="downloadTemplate" class="wrap-normal">Download Product Template</b-dropdown-item>
         </b-dropdown>
-        <b-dropdown id="dropdown-form" right ref="dropdown" class="m-2 btn-filter" no-flip>
-          <template v-slot:button-content>
-            <font-awesome-icon icon="filter" class="mr-2" />FILTER
-          </template>
-
-          <div>
-            <p class="font-weight-bold mb-2">Status</p>
-          </div>
-
-          <div class="form-check mb-2">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              value
-              id="all"
-              :checked="checkAll"
-              @click="checkAllSelect()"
-              v-model="selectAllCb"
-            />
-            <label class="form-check-label" for="all">All</label>
-          </div>
-          <div class="row">
-            <div class="col-sm-6">
-              <div class="form-check">
-                <input
-                  class="form-check-input"
-                  v-model="filter.status"
-                  type="checkbox"
-                  value="1"
-                  id="status1"
-                  @change="checkStatusLength"
-                />
-                <label class="form-check-label" for="status1">Active</label>
-              </div>
-            </div>
-            <div class="col-sm-6">
-              <div class="form-check mt-2 mt-sm-0">
-                <input
-                  class="form-check-input"
-                  v-model="filter.status"
-                  type="checkbox"
-                  value="0"
-                  id="status2"
-                  @change="checkStatusLength"
-                />
-                <label class="form-check-label" for="status2">Inactive</label>
-              </div>
-            </div>
-          </div>
-          <div>
-            <div class="d-flex mt-3">
-              <div>
-                <p class="font-weight-bold mb-2">Min Price</p>
-                <b-form-input v-model="filter.StartPrice" placeholder="Min Price"></b-form-input>
-              </div>
-              <div class="mx-2">
-                <p class="mt-40">-</p>
-              </div>
-              <div>
-                <p class="font-weight-bold mb-2">Max Price</p>
-                <b-form-input v-model="filter.EndPrice" placeholder="Max Price"></b-form-input>
-              </div>
-            </div>
-          </div>
-          <div>
-            <p class="font-weight-bold my-2">Tag</p>
-            <div class="row">
-              <div class="col-sm-6" v-for="(item,index) in tag" v-bind:key="index">
-                <div class="form-check mb-2">
-                  <input
-                    class="form-check-input"
-                    v-model="filter.NewArrivalHot"
-                    type="checkbox"
-                    :value="item.id"
-                    :id="'tag-'+item.id"
-                  />
-                  <label class="form-check-label" :for="'tag-'+item.id">{{item.name}}</label>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="text-center mt-3">
-            <button type="button" class="btn btn-primary button" @click="getDataByStatus()">Submit</button>
-          </div>
-        </b-dropdown>
+        <b-button v-b-toggle.sidebar-1 class="mr-2 btn-filter">
+          <font-awesome-icon icon="filter" title="filter-btn" class="text-white mr-0 mr-sm-1" />
+          <span class="d-none d-sm-inline">FILTER</span>
+        </b-button>
         <router-link to="/product/details/0">
-          <button type="button" class="btn btn-success button">CREATE NEW</button>
+          <button type="button" class="btn btn-success button btn-mobile">
+            <font-awesome-icon icon="plus" class="text-white d-sm-none" />
+            <span class="d-none d-sm-block">CREATE NEW</span>
+          </button>
         </router-link>
-      </CCol>
+      </b-col>
     </CRow>
-    <div class="bg-white-border px-4 px-sm-5 py-4 mt-4">
+    <b-sidebar
+      id="sidebar-1"
+      title="FILTER"
+      backdrop
+      shadow
+      backdrop-variant="dark"
+      right
+      ref="filterSidebar"
+    >
+      <div class="px-3 py-2">
+        <div>
+          <p class="font-weight-bold mb-2">Status</p>
+        </div>
+
+        <div class="form-check mb-2">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            value
+            id="all"
+            :checked="checkAll"
+            @click="checkAllSelect()"
+            v-model="selectAllCb"
+          />
+          <label class="form-check-label" for="all">All</label>
+        </div>
+        <div class="row">
+          <div class="col-6">
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                v-model="filter.Status"
+                type="checkbox"
+                value="1"
+                id="status1"
+                @change="checkStatusLength"
+              />
+              <label class="form-check-label" for="status1">Active</label>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                v-model="filter.Status"
+                type="checkbox"
+                value="0"
+                id="status2"
+                @change="checkStatusLength"
+              />
+              <label class="form-check-label" for="status2">Inactive</label>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="d-flex mt-3">
+            <div>
+              <p class="font-weight-bold mb-2">Min Price</p>
+              <b-form-input
+                v-model="filter.StartPrice"
+                @keypress="isNumber($event)"
+                placeholder="Min Price"
+              ></b-form-input>
+            </div>
+            <div class="mx-2">
+              <!-- <p class="mt-40">-</p> -->
+            </div>
+            <div>
+              <p class="font-weight-bold mb-2">Max Price</p>
+              <b-form-input
+                v-model="filter.EndPrice"
+                @keypress="isNumber($event)"
+                placeholder="Max Price"
+              ></b-form-input>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p class="font-weight-bold my-2">Tag</p>
+          <div class="row">
+            <div class="col-6" v-for="(item,index) in tag" v-bind:key="index">
+              <div class="form-check mb-2">
+                <input
+                  class="form-check-input"
+                  v-model="filter.NewArrivalHot"
+                  type="checkbox"
+                  :value="item.id"
+                  :id="'tag-'+item.id"
+                />
+                <label class="form-check-label" :for="'tag-'+item.id">{{item.name}}</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <b-row class="no-gutters">
+          <b-col>
+            <div class="my-3">
+              <p class="font-weight-bold mb-2">Sort By</p>
+            </div>
+
+            <b-form-select v-model="selected" :options="options" class="sortByDropdown"></b-form-select>
+          </b-col>
+        </b-row>
+
+        <div class="text-center mt-4">
+          <button
+            type="button"
+            class="btn bg-main-color text-white button"
+            @click="getDataByStatus"
+          >Submit</button>
+        </div>
+      </div>
+    </b-sidebar>
+    <div class="bg-white-border px-4 px-sm-5 pb-4 mt-3">
       <b-row class="no-gutters mt-3">
         <b-col lg="6">
           <b-input-group class="panel-input-serach">
-            <b-form-input
-              class="input-serach"
-              placeholder="Name, SKU"
-              @keyup="handleSearch"
-              v-model="filter.search"
-            ></b-form-input>
-            <b-input-group-prepend>
-              <span class="icon-input m-auto pr-2">
-                <font-awesome-icon icon="search" />
-              </span>
-            </b-input-group-prepend>
-          </b-input-group>
-        </b-col>
-        <b-col lg="6" class="text-center text-sm-right">
-          <div class="float-sm-left p-rt-5 px-0 px-lg-3 py-3 py-lg-0">
-            <p class="font-weight-bold mb-1 text-body text-left">Sort By</p>
-            <b-form-select
-              v-model="selected"
-              :options="options"
-              class="sortByDropdown"
-              @change="getList"
-            ></b-form-select>
-          </div>
+              <b-form-input class="input-serach" @keyup="handleSearch" placeholder="Name, SKU" v-model="filter.search"></b-form-input>
+              <b-input-group-prepend>
+                <span class="icon-input m-auto pr-2">
+                  <font-awesome-icon icon="search" />
+                </span>
+              </b-input-group-prepend>
+            </b-input-group>
         </b-col>
       </b-row>
-      <b-row>
-        <b-col class="mt-4 w-100">
+      <b-row class="mt-3">
+        <b-col>
           <b-table
             responsive
             striped
@@ -159,7 +184,16 @@
               </div>
             </template>
             <template v-slot:cell(price)="data">
-              <p class="m-0">{{data.item.price | numeral('0,0.00')}}</p>
+              <p
+                class="m-0"
+                v-if="data.item.advancePrice > 0"
+                style=" text-decoration: line-through"
+              >{{data.item.price | numeral('0,0.00')}}</p>
+              <p
+                class="m-0"
+                v-if="data.item.advancePrice == 0"
+              >{{data.item.price | numeral('0,0.00')}}</p>
+              <p class="m-0 text-danger" v-else>{{data.item.advancePrice | numeral('0,0.00')}}</p>
             </template>
             <template v-slot:cell(stock)="data">
               <p class="m-0">{{data.item.stock | numeral('0,0')}}</p>
@@ -176,7 +210,7 @@
               <div v-if="data.item.enabled == true" class="text-success">Active</div>
               <div v-else class="text-danger">Inactive</div>
             </template>
-             <template v-slot:cell(display)="data">
+            <template v-slot:cell(display)="data">
               <div v-if="data.item.display == true" class="text-success">Active</div>
               <div v-else class="text-danger">Inactive</div>
             </template>
@@ -223,50 +257,16 @@
       </b-row>
     </div>
 
-    <b-modal
-      id="importDataModal"
-      ref="importDataModal"
-      hide-header
-      hide-footer
-      no-close-on-backdrop
-      centered
-      body-class="p-4"
-    >
-      <div class="modal-header border-0 px-0 pt-0">
-        <h3 class="font-weight-bold">Import Data</h3>
-        <button
-          type="button"
-          aria-label="Close"
-          class="close"
-          @click="$bvModal.hide('importDataModal')"
-        >×</button>
-      </div>
-      <div>
-        <b-container class="p-0">
-          <b-row>
-            <b-col>
-              <UploadFile
-                textFloat="File"
-                placeholder="Please choose file"
-                format="excel"
-                name="file"
-                text="*Please upload only file .xlsx less than 10 MB"
-                isRequired
-                v-on:onFileChange="onFileChange"
-                v-on:delete="deleteFile"
-                :fileName="filename"
-                v-model="form.base64"
-              />
-
-              <p v-if="importerror" class="text-danger">{{error}}</p>
-            </b-col>
-          </b-row>
-          <div class="text-center mt-3">
-            <b-button class="btn btn-main" :disabled="isDisable" @click="importData">Submit</b-button>
-          </div>
-        </b-container>
-      </div>
-    </b-modal>
+    <ModalAlert
+      v-if="modalAlertShow"
+      :msg="msgModal"
+      :img="imgModal"
+      :isOpen="modalAlertShow"
+      @close="modalAlertShow = false"
+      @closeModal="handleCloseModal"
+      :isSuccess="isSuccess"
+      :hideClose="hideClose"
+    />
   </CContainer>
 </template>
 
@@ -274,11 +274,13 @@
 import axios from "axios";
 import * as moment from "moment/moment";
 import UploadFile from "@/components/inputs/UploadFile";
+import ModalAlert from "@/components/ModalAlert";
 
 export default {
   name: "ProductIndex",
   components: {
-    UploadFile
+    UploadFile,
+    ModalAlert
   },
   data() {
     return {
@@ -316,7 +318,7 @@ export default {
           key: "enabled",
           label: "Status"
         },
-         {
+        {
           key: "display",
           label: "Display Status",
           class: "w-100px"
@@ -329,6 +331,9 @@ export default {
       items: [],
       tag: [],
       isBusy: false,
+      modalAlertShow: false,
+      imgModal: null,
+      msgModal: null,
       isDisable: true,
       importerror: false,
       error: true,
@@ -368,6 +373,18 @@ export default {
     await this.getList();
   },
   methods: {
+    isNumber: function(evt) {
+      evt = evt ? evt : window.event;
+      var charCode = evt.which ? evt.which : evt.keyCode;
+      if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+        evt.preventDefault();
+      } else {
+        return true;
+      }
+    },
+    handleCloseModal: function() {
+      this.modalAlertShow = false;
+    },
     getList: async function() {
       this.isBusy = true;
       this.filter.SortByOrderOrId = this.selected;
@@ -409,11 +426,11 @@ export default {
       this.getList();
     },
     getDataByStatus() {
-      this.$refs.dropdown.hide(true);
+      this.$refs.filterSidebar.hide();
       this.getList();
     },
     checkStatusLength() {
-      if (this.filter.status.length == 2) {
+      if (this.filter.Status.length == 2) {
         this.selectAllCb = true;
       } else {
         this.selectAllCb = false;
@@ -421,9 +438,9 @@ export default {
     },
     checkAllSelect() {
       if (this.selectAllCb) {
-        this.filter.status = [];
+        this.filter.Status = [];
       } else {
-        this.filter.status = [1, 0];
+        this.filter.Status = [1, 0];
       }
     },
     hanndleChangePerpage(value) {
@@ -461,44 +478,80 @@ export default {
       this.filename = null;
       this.isDisable = true;
     },
-    importData: async function(id) {
-      this.isDisable = true;
-
-      let data = await this.$callApi(
-        "post",
-        `${this.$baseUrl}/api/product/importProduct`,
-        null,
-        this.$headers,
-        this.form
-      );
-
-      if (data.result == 1) {
-        this.$refs["importDataModal"].hide();
-        this.form.base64 = null;
-        this.filename = null;
-        this.getList();
-      }
-    },
     exportData: async function() {
+      this.modalAlertShow = true;
+      this.imgModal = "/img/loading.svg";
+      this.msgModal = "In progress. Exporting Data...";
+      this.isSuccess = true;
+      this.hideClose = true;
+
       axios({
         url: `${this.$baseUrl}/api/product/exportProduct`,
         method: "post",
         headers: this.$headers,
         responseType: "blob",
         data: this.filter
-      }).then(response => {
-        var fileURL = window.URL.createObjectURL(new Blob([response.data]));
-        var fileLink = document.createElement("a");
-        var dateExcel = moment().format("DDMMYYYYhhmmss");
+      })
+        .then(response => {
+          var fileURL = window.URL.createObjectURL(new Blob([response.data]));
+          var fileLink = document.createElement("a");
+          var dateExcel = moment().format("DDMMYYYYhhmmss");
 
-        fileLink.href = fileURL;
-        fileLink.setAttribute(
-          "download",
-          `Product-List-` + dateExcel + `.xlsx`
-        );
-        document.body.appendChild(fileLink);
-        fileLink.click();
-      });
+          this.modalAlertShow = false;
+
+          fileLink.href = fileURL;
+          fileLink.setAttribute(
+            "download",
+            `Product-List-` + dateExcel + `.xlsx`
+          );
+          document.body.appendChild(fileLink);
+          fileLink.click();
+        })
+        .catch(error => {
+          if (error.response.status === 500) {
+            this.imgModal = "/img/icon-unsuccess.png";
+            this.msgModal =
+              "Internal Server Error. Please contact system administrator";
+            this.hideClose = false;
+          }
+        });
+    },
+    downloadTemplate: async function() {
+      this.modalAlertShow = true;
+      this.imgModal = "/img/loading.svg";
+      this.msgModal = "In progress. Exporting Data...";
+      this.isSuccess = true;
+      this.hideClose = true;
+
+      axios({
+        url: `${this.$baseUrl}/api/product/exportProductTemplate`,
+        method: "get",
+        headers: this.$headers,
+        responseType: "blob"
+      })
+        .then(response => {
+          var fileURL = window.URL.createObjectURL(new Blob([response.data]));
+          var fileLink = document.createElement("a");
+          var dateExcel = moment().format("DDMMYYYYhhmmss");
+
+          this.modalAlertShow = false;
+
+          fileLink.href = fileURL;
+          fileLink.setAttribute(
+            "download",
+            `Product-Template-List-` + dateExcel + `.xlsx`
+          );
+          document.body.appendChild(fileLink);
+          fileLink.click();
+        })
+        .catch(error => {
+          if (error.response.status === 500) {
+            this.imgModal = "/img/icon-unsuccess.png";
+            this.msgModal =
+              "Internal Server Error. Please contact system administrator";
+            this.hideClose = false;
+          }
+        });
     }
   }
 };

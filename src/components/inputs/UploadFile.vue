@@ -32,6 +32,7 @@
               :required="required"
               :name="name"
               ref="input"
+              @click="clearValue"
             />
             <font-awesome-icon icon="file-upload" color="white" class="bg-icon mr-2" :size="size" />Choose file
           </label>
@@ -143,6 +144,9 @@ export default {
     };
   },
   methods: {
+    clearValue(e) {
+      e.target.value = ''
+    },
     handleFileChange(e) {
       this.hasError = false;
       this.error = "";
@@ -253,7 +257,7 @@ input[type="file"] {
 }
 .input-custom > label {
   color: #16274a;
-  font-size: 16px;
+  font-size: 17px;
   margin-bottom: 2px;
   font-weight: bold;
 }

@@ -9,7 +9,7 @@
         </b-row>
 
         <b-row class="no-gutters bg-white-border mt-4">
-          <b-col class="px-4 px-sm-5 py-4" v-if="isLoadingData">
+          <b-col class="px-4 px-sm-5 py-4 vh-100" v-if="isLoadingData">
             <img src="/img/loading.svg" class="loading" alt="loading" />
           </b-col>
           <b-col class="px-4 px-sm-5 py-4" v-else>
@@ -154,7 +154,6 @@
                   @click="checkForm(0)"
                   :disabled="isDisable"
                   class="btn btn-success btn-details-set ml-md-2 text-uppercase"
-                  v-if="isEdit"
                 >Save</button>
                 <button
                   type="button"
@@ -198,6 +197,7 @@ export default {
     return {
       isEdit: false,
       isBusy: false,
+      existId: "",
       isLoadingData: false,
       isDisable: false,
       isSuccess: false,
@@ -283,7 +283,11 @@ export default {
         if (this.id > 0) {
           this.getDatas();
         } else {
-          window.location.href = "/faq";
+          this.form.faqTopic.id = this.existId;
+          this.id = this.existId;
+          this.$cookies.set("faq_topic_id", this.id, 60 * 60 * 24 * 30);
+          this.isEdit = true;
+          this.$router.push({ path: `/faq/details/${this.existId}` });
         }
       }
     },
@@ -314,9 +318,20 @@ export default {
         this.form = data.detail;
         this.isLoadingData = false;
         this.$v.form.$reset();
-        
+
         if (this.form.faqTopic.id > 0) {
           this.isEdit = true;
+        }
+
+        if (this.form.faqTopic.isSameLanguage) {
+          this.imageLogoLang = "";
+        } else {
+          var index = this.languageList
+            .map(function(x) {
+              return x.id;
+            })
+            .indexOf(this.languageActive);
+          this.imageLogoLang = this.languageList[index].imageUrl;
         }
       }
 
@@ -372,6 +387,7 @@ export default {
         this.imgModal = "/img/icon-check-green.png";
         this.msgModal = data.message;
         this.isSuccess = true;
+        this.existId = data.detail.id;
       } else {
         this.imgModal = "/img/icon-unsuccess.png";
         this.msgModal = data.detail[0];
@@ -383,6 +399,7 @@ export default {
     useSameLanguage: async function() {
       Vue.nextTick(() => {
         if (this.form.faqTopic.isSameLanguage) {
+          this.imageLogoLang = "";
           this.form.faqTopic.mainLanguageId = this.languageActive;
           let data = this.form.faqTopic.translationList.filter(
             val => val.languageId == this.form.faqTopic.mainLanguageId
@@ -401,6 +418,13 @@ export default {
             }
           }
         } else {
+          var index = this.languageList
+            .map(function(x) {
+              return x.id;
+            })
+            .indexOf(this.languageActive);
+          this.imageLogoLang = this.languageList[index].imageUrl;
+
           let data = this.form.faqTopic.translationList.filter(
             val => val.languageId != this.form.faqTopic.mainLanguageId
           );

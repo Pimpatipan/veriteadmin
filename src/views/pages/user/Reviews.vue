@@ -1,47 +1,57 @@
 <template>
   <div>
-      <b-container class="container-box">
-    <b-row class="no-gutters mb-4">
-      <b-col>
-        <h1 class="font-weight-bold text-uppercase">Customer Review</h1>
-      </b-col>
-    </b-row>
+    <b-container class="container-box">
+      <b-row class="no-gutters mb-2">
+        <b-col>
+          <h1 class="font-weight-bold text-uppercase">Customer Review</h1>
+        </b-col>
+      </b-row>
 
-    <b-row class="no-gutters bg-white-border">
-      <b-col class="px-4 px-sm-5 py-4 mt-4">
-        <b-row class>
-          <b-col sm="4">
-            <InputSelect
-              class="mb-4"
-              title="Texture"
-              name="Texture"
-              v-bind:options="rating"
-              v-on:onDataChange="handleChangeTexture"
-              v-model="filterUserReview.textureRate"
-            />
-          </b-col>
-          <b-col sm="4">
-            <InputSelect
-              class="mb-4"
-              title="Result"
-              name="Result"
-              v-bind:options="rating"
-              v-on:onDataChange="handleChangeResult"
-              v-model="filterUserReview.resultRate"
-            />
-          </b-col>
-          <b-col sm="4" class="text-right">
-            <b-dropdown
-              id="dropdown-form"
-              right
-              ref="dropdown"
-              class="btn-filter mb-4 mb-sm-0"
-              no-flip
-            >
-              <template v-slot:button-content>
-                <font-awesome-icon icon="filter" class="mr-2" />FILTER
-              </template>
+      <b-row class="no-gutters bg-white-border">
+        <b-col class="px-4 px-sm-5 py-4">
+          <b-row class>
+            <b-col sm="4">
+              <InputSelect
+                class="mb-4"
+                title="Texture"
+                name="Texture"
+                v-bind:options="rating"
+                v-on:onDataChange="handleChangeTexture"
+                v-model="filterUserReview.textureRate"
+              />
+            </b-col>
+            <b-col sm="4">
+              <InputSelect
+                class="mb-4"
+                title="Result"
+                name="Result"
+                v-bind:options="rating"
+                v-on:onDataChange="handleChangeResult"
+                v-model="filterUserReview.resultRate"
+              />
+            </b-col>
+            <b-col sm="4" class="text-right">
+              <b-button v-b-toggle.sidebar-1 class="btn-filter mb-3">
+                <font-awesome-icon
+                  icon="filter"
+                  title="filter-btn"
+                  class="text-white mr-0 mr-sm-1"
+                />
+                <span class="d-none d-sm-inline">FILTER</span>
+              </b-button>
+            </b-col>
+          </b-row>
 
+          <b-sidebar
+            id="sidebar-1"
+            title="FILTER"
+            backdrop
+            shadow
+            backdrop-variant="dark"
+            right
+            ref="filterSidebar"
+          >
+            <div class="px-3 py-2">
               <div>
                 <p class="font-weight-bold mb-2">Status</p>
               </div>
@@ -89,217 +99,228 @@
               <div class="text-center mt-3">
                 <button
                   type="button"
-                  class="btn btn-primary button"
+                 class="btn bg-main-color text-white button"
                   @click="getDataByUserReviewStatus()"
                 >Submit</button>
               </div>
-            </b-dropdown>
-          </b-col>
-        </b-row>
+            </div>
+          </b-sidebar>
 
-        <div>
-          <b-table
-            responsive="lg"
-            striped
-            :fields="userReviewFields"
-            :items="userReviewDetail.userReviewList.userReview"
-            :busy="isBusyUserReview"
-            show-empty
-            empty-text="No matching records found"
-          >
-            <template v-slot:head(productRatingId)="data">
-              <div class="row">
-                <div class="col-6">
-                  <span class="text-white f-16">{{data.label}}</span>
-                </div>
-                <div class="col-6 text-right">
-                  <span
-                    class="text-white f-16"
-                  >Total : {{userReviewDetail.userReviewList.count}} Reviewed</span>
-                </div>
-              </div>
-            </template>
-            <template v-slot:cell(productRatingId)="data">
-              <b-row>
-                <b-col cols="6">
-                  <a
-                    class="main-label"
-                    :href="'/user/details/'+data.item.reviewByUserGUID"
-                    target="_blank"
-                  >{{data.item.reviewBy}}</a>
-                </b-col>
-                <b-col cols="6" class="text-right">
-                  <span>{{ new Date(data.item.updatedTime) | moment($formatDate) }}</span>
-                </b-col>
-              </b-row>
-              <div class="d-flex mb-1 mt-2">
-                <label class="f-14 main-label mr-2">Overall</label>
-                <div class="mr-4">
-                  <span class="score">
-                    <div class="score-wrap">
-                      <span
-                        class="stars-active"
-                        :style="{'width': (data.item.overallRate * 20)+'%'}"
-                      >
-                        <font-awesome-icon
-                          :icon="['fas', 'star']"
-                          v-for="(item,index) in 5"
-                          v-bind:key="index"
-                        />
-                      </span>
-                      <span class="stars-inactive">
-                        <font-awesome-icon
-                          :icon="['far', 'star']"
-                          v-for="(item,index) in 5"
-                          v-bind:key="index"
-                        />
-                      </span>
-                    </div>
-                  </span>
-                </div>
-                <label class="f-14 main-label mr-2">Texture</label>
-                <div class="mr-4">
-                  <span class="score">
-                    <div class="score-wrap">
-                      <span
-                        class="stars-active"
-                        :style="{'width': (data.item.textureRate * 20)+'%'}"
-                      >
-                        <font-awesome-icon
-                          :icon="['fas', 'star']"
-                          v-for="(item,index) in 5"
-                          v-bind:key="index"
-                        />
-                      </span>
-                      <span class="stars-inactive">
-                        <font-awesome-icon
-                          :icon="['far', 'star']"
-                          v-for="(item,index) in 5"
-                          v-bind:key="index"
-                        />
-                      </span>
-                    </div>
-                  </span>
-                </div>
-                <label class="f-14 main-label mr-2">Result</label>
-                <div class="mr-2">
-                  <span class="score">
-                    <div class="score-wrap">
-                      <span
-                        class="stars-active"
-                        :style="{'width': (data.item.resultRate * 20)+'%'}"
-                      >
-                        <font-awesome-icon
-                          :icon="['fas', 'star']"
-                          v-for="(item,index) in 5"
-                          v-bind:key="index"
-                        />
-                      </span>
-                      <span class="stars-inactive">
-                        <font-awesome-icon
-                          :icon="['far', 'star']"
-                          v-for="(item,index) in 5"
-                          v-bind:key="index"
-                        />
-                      </span>
-                    </div>
-                  </span>
-                </div>
-              </div>
-              <p>{{data.item.description}}</p>
-              <hr />
-              <div>
-                <div
-                  class="user-review-img pointer"
-                  v-bind:style="{ 'background-image': 'url(' + item.path + ')' }"
-                  v-for="(item,index) in data.item.imageReview"
-                  :key="index"
-                  @click="seeImage(item.path)"
-                ></div>
-              </div>
-              <b-row class="mt-4">
-                <b-col cols="6">
-                  <div></div>
-                  <label class="font-weight-bold main-label mr-4">
-                    Display Status
-                    <span class="text-danger">*</span>
-                  </label>
-                  <div class="d-inline-block lh-30">
-                    <b-form-checkbox
-                      switch
-                      v-model="data.item.confirm"
-                      class="radio-active"
-                      size="lg"
-                      @change="changeReviewStatus(data.item,0)"
-                    >
-                      <span
-                        class="ml-2 main-label lh-30"
-                      >{{data.item.confirm ? 'Active' : 'Inactive' }}</span>
-                    </b-form-checkbox>
+          <div>
+            <b-table
+              responsive="lg"
+              striped
+              :fields="userReviewFields"
+              :items="userReviewDetail.dataList"
+              :busy="isBusyUserReview"
+              show-empty
+              empty-text="No matching records found"
+            >
+              <template v-slot:head(productRatingId)="data">
+                <div class="row">
+                  <div class="col-6">
+                    <span class="text-white f-16">{{data.label}}</span>
                   </div>
-                </b-col>
-                <b-col cols="6" class="text-right">
-                  <h5 v-if="data.item.review" class="font-weight-bold">Reviewed</h5>
-                  <b-button
-                    v-else
-                    variant="outline-dark"
-                    type="button"
-                    class="rounded-0"
-                    @click="changeReviewStatus(data.item,1)"
-                  >Pending Review</b-button>
-                </b-col>
-              </b-row>
-            </template>
-            <template v-slot:table-busy>
-              <div class="text-center text-black my-2">
-                <b-spinner class="align-middle"></b-spinner>
-                <strong class="ml-2">Loading...</strong>
-              </div>
-            </template>
-          </b-table>
-        </div>
-        <b-row>
-          <b-col class="form-inline justify-content-center justify-content-md-between">
-            <b-pagination
-              v-model="filterUserReview.pageNo"
-              :total-rows="rowsUserReview"
-              :per-page="filterUserReview.perPage"
-              class="m-md-0"
-              @change="pagination"
-            ></b-pagination>
-            <b-form-select
-              v-model="filterUserReview.perPage"
-              @change="hanndleChangePerpage"
-              :options="pageOptions"
-            ></b-form-select>
-          </b-col>
-        </b-row>
-      </b-col>
-    </b-row>
+                  <div class="col-6 text-right">
+                    <span class="text-white f-16">Total : {{userReviewDetail.count}} Reviewed</span>
+                  </div>
+                </div>
+              </template>
+              <template v-slot:cell(productRatingId)="data">
+                <b-row>
+                  <b-col cols="6">
+                    <div class="mb-1">
+                      <a
+                        class="main-label"
+                        :href="'/product/details/'+data.item.productId"
+                        target="_blank"
+                      >{{data.item.productName}}</a>
+                    </div>
+                    <a
+                      class="main-label"
+                      :href="'/user/details/'+data.item.reviewByUserGUID"
+                      target="_blank"
+                    >{{data.item.reviewBy}}</a>
+                  </b-col>
+                  <b-col cols="6" class="text-right">
+                    <span>{{ new Date(data.item.updatedTime) | moment($formatDate) }}</span>
+                  </b-col>
+                </b-row>
+                <div class="d-flex mb-1 mt-2">
+                  <label class="f-14 main-label mr-2">Overall</label>
+                  <div class="mr-4">
+                    <span class="score">
+                      <div class="score-wrap">
+                        <span
+                          class="stars-active"
+                          :style="{'width': (data.item.overallRate * 20)+'%'}"
+                        >
+                          <font-awesome-icon
+                            :icon="['fas', 'star']"
+                            v-for="(item,index) in 5"
+                            v-bind:key="index"
+                          />
+                        </span>
+                        <span class="stars-inactive">
+                          <font-awesome-icon
+                            :icon="['far', 'star']"
+                            v-for="(item,index) in 5"
+                            v-bind:key="index"
+                          />
+                        </span>
+                      </div>
+                    </span>
+                  </div>
+                  <label class="f-14 main-label mr-2">Texture</label>
+                  <div class="mr-4">
+                    <span class="score">
+                      <div class="score-wrap">
+                        <span
+                          class="stars-active"
+                          :style="{'width': (data.item.textureRate * 20)+'%'}"
+                        >
+                          <font-awesome-icon
+                            :icon="['fas', 'star']"
+                            v-for="(item,index) in 5"
+                            v-bind:key="index"
+                          />
+                        </span>
+                        <span class="stars-inactive">
+                          <font-awesome-icon
+                            :icon="['far', 'star']"
+                            v-for="(item,index) in 5"
+                            v-bind:key="index"
+                          />
+                        </span>
+                      </div>
+                    </span>
+                  </div>
+                  <label class="f-14 main-label mr-2">Result</label>
+                  <div class="mr-2">
+                    <span class="score">
+                      <div class="score-wrap">
+                        <span
+                          class="stars-active"
+                          :style="{'width': (data.item.resultRate * 20)+'%'}"
+                        >
+                          <font-awesome-icon
+                            :icon="['fas', 'star']"
+                            v-for="(item,index) in 5"
+                            v-bind:key="index"
+                          />
+                        </span>
+                        <span class="stars-inactive">
+                          <font-awesome-icon
+                            :icon="['far', 'star']"
+                            v-for="(item,index) in 5"
+                            v-bind:key="index"
+                          />
+                        </span>
+                      </div>
+                    </span>
+                  </div>
+                </div>
+                <p>{{data.item.description}}</p>
+                <hr />
+                <div>
+                  <div
+                    class="user-review-img pointer"
+                    v-bind:style="{ 'background-image': 'url(' + item.path + ')' }"
+                    v-for="(item,index) in data.item.imageReview"
+                    :key="index"
+                    @click="seeImage(item.path)"
+                  ></div>
+                </div>
+                <b-row class="mt-4">
+                  <b-col cols="6">
+                    <div></div>
+                    <label class="font-weight-bold main-label mr-4">
+                      Display Status
+                      <span class="text-danger">*</span>
+                    </label>
+                    <div class="d-inline-block lh-30">
+                      <b-form-checkbox
+                        switch
+                        v-model="data.item.confirm"
+                        class="radio-active"
+                        size="lg"
+                        @change="changeReviewStatus(data.item,0)"
+                      >
+                        <span
+                          class="ml-2 main-label lh-30"
+                        >{{data.item.confirm ? 'Active' : 'Inactive' }}</span>
+                      </b-form-checkbox>
+                    </div>
+                  </b-col>
+                  <b-col cols="6" class="text-right">
+                    <h5 v-if="data.item.review" class="font-weight-bold">Reviewed</h5>
+                    <b-button
+                      v-else
+                      variant="outline-dark"
+                      type="button"
+                      class="rounded-0"
+                      @click="changeReviewStatus(data.item,1)"
+                    >Pending Review</b-button>
+                  </b-col>
+                </b-row>
+              </template>
+              <template v-slot:table-busy>
+                <div class="text-center text-black my-2">
+                  <b-spinner class="align-middle"></b-spinner>
+                  <strong class="ml-2">Loading...</strong>
+                </div>
+              </template>
+            </b-table>
+          </div>
+          <b-row>
+            <b-col class="form-inline justify-content-center justify-content-md-between">
+              <b-pagination
+                v-model="filterUserReview.pageNo"
+                :total-rows="rowsUserReview"
+                :per-page="filterUserReview.perPage"
+                class="m-md-0"
+                @change="pagination"
+              ></b-pagination>
+              <b-form-select
+                v-model="filterUserReview.perPage"
+                @change="hanndleChangePerpage"
+                :options="pageOptions"
+              ></b-form-select>
+            </b-col>
+          </b-row>
+        </b-col>
+      </b-row>
 
-    <b-modal id="showImgModal" ref="showImgModal" hide-header hide-footer centered body-class="p-1">
-      <div class="modal-header border-0 p-0 m-0">
-        <!-- <button
+      <b-modal
+        id="showImgModal"
+        ref="showImgModal"
+        hide-header
+        hide-footer
+        centered
+        body-class="p-1"
+      >
+        <div class="modal-header border-0 p-0 m-0">
+          <!-- <button
           type="button"
           aria-label="Close"
           class="close"
           @click="$bvModal.hide('showImgModal')"
-        >×</button>-->
-      </div>
-      <div>
-        <b-container class="p-1">
-          <b-row>
-            <b-col>
-              <div
-                class="square-box b-contain m-0 pb-0"
-                v-bind:style="{ 'background-image': 'url(' + previewImg + ')' }"
-              ></div>
-            </b-col>
-          </b-row>
-        </b-container>
-      </div>
-    </b-modal>
-      </b-container>
+          >×</button>-->
+        </div>
+        <div>
+          <b-container class="p-1">
+            <b-row>
+              <b-col>
+                <div
+                  class="square-box b-contain m-0 pb-0"
+                  v-bind:style="{ 'background-image': 'url(' + previewImg + ')' }"
+                ></div>
+              </b-col>
+            </b-row>
+          </b-container>
+        </div>
+      </b-modal>
+    </b-container>
   </div>
 </template>
 
@@ -377,110 +398,11 @@ export default {
         textureRate: 0,
         resultRate: 0
       },
-      userReviewDetail: {
-        reviewScore: {
-          ratingOverAll: {
-            id: 0,
-            name: "",
-            rate: 0.0,
-            percent: 0.0,
-            star: []
-          },
-          ratingAttribute: [
-            {
-              id: 1,
-              name: "",
-              rate: 0.0,
-              percent: 0.0,
-              count: 0,
-              star: [
-                {
-                  "1": {
-                    number: 0,
-                    percent: 0.0
-                  }
-                },
-                {
-                  "2": {
-                    number: 0,
-                    percent: 0.0
-                  }
-                },
-                {
-                  "3": {
-                    number: 0,
-                    percent: 0.0
-                  }
-                },
-                {
-                  "4": {
-                    number: 0,
-                    percent: 0.0
-                  }
-                },
-                {
-                  "5": {
-                    number: 0,
-                    percent: 0.0
-                  }
-                }
-              ]
-            },
-            {
-              id: 2,
-              name: "",
-              rate: 0.0,
-              percent: 0.0,
-              count: 0,
-              star: [
-                {
-                  "1": {
-                    number: 0,
-                    percent: 0.0
-                  }
-                },
-                {
-                  "2": {
-                    number: 0,
-                    percent: 0.0
-                  }
-                },
-                {
-                  "3": {
-                    number: 0,
-                    percent: 0.0
-                  }
-                },
-                {
-                  "4": {
-                    number: 0,
-                    percent: 0.0
-                  }
-                },
-                {
-                  "5": {
-                    number: 0,
-                    percent: 0.0
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        userReviewList: {
-          count: 0,
-          userReview: []
-        }
-      },
-      userReviewData: {
-        userReview: []
-      }
+      userReviewDetail: []
     };
   },
   created: async function() {
-    // if (this.id != 0) {
-    //   await this.getUserReview();
-    // }
+    await this.getUserReview();
   },
   methods: {
     moment: function() {
@@ -496,7 +418,7 @@ export default {
       this.getUserReview();
     },
     getDataByUserReviewStatus() {
-      this.$refs.dropdown.hide(true);
+      this.$refs.filterSidebar.hide(true);
       this.getUserReview();
     },
     checkUserReviewStatusLength() {
@@ -517,7 +439,7 @@ export default {
       this.isBusyUserReview = true;
       let data = await this.$callApi(
         "post",
-        `${this.$baseUrl}/api/product/userReview/${this.id}`,
+        `${this.$baseUrl}/api/customerReview/list`,
         null,
         this.$headers,
         this.filterUserReview
@@ -525,9 +447,8 @@ export default {
 
       if (data.result == 1) {
         this.userReviewDetail = data.detail;
-        this.rowsUserReview = data.detail.userReviewList.count;
+        this.rowsUserReview = data.detail.count;
         this.isBusyUserReview = false;
-        this.checkRatingOverall();
       }
     },
     seeImage(img) {
@@ -546,19 +467,16 @@ export default {
         let userReviewDatas = {
           productRatingId: id,
           isReview: review,
-          isComfirm: this.userReviewDetail.userReviewList.userReview[0].confirm
+          isComfirm: data.confirm
         };
-
-        this.userReviewData.userReview = [];
-        await this.userReviewData.userReview.push(userReviewDatas);
 
         setTimeout(async () => {
           let data = await this.$callApi(
             "post",
-            `${this.$baseUrl}/api/product/saveUserReview`,
+            `${this.$baseUrl}/api/customerReview/save`,
             null,
             this.$headers,
-            this.userReviewData
+            userReviewDatas
           );
 
           if (data.result == 1) {
@@ -574,24 +492,6 @@ export default {
     handleChangeResult(value) {
       this.filterUserReview.resultRate = value;
       this.getUserReview();
-    },
-    checkRatingOverall() {
-      let overallRate = this.userReviewDetail.reviewScore.ratingOverAll.percent;
-
-      if (overallRate % 20 != 0) {
-        if (overallRate > 0 && overallRate < 20) {
-          this.userReviewDetail.reviewScore.ratingOverAll.percent = 10;
-        } else if (overallRate > 20 && overallRate < 40) {
-          this.userReviewDetail.reviewScore.ratingOverAll.percent = 30;
-        } else if (overallRate > 40 && overallRate < 60) {
-          this.userReviewDetail.reviewScore.ratingOverAll.percent = 50;
-        } else if (overallRate > 60 && overallRate < 80) {
-          this.userReviewDetail.reviewScore.ratingOverAll.percent = 70;
-        } else if (overallRate > 80 && overallRate < 100) {
-          this.userReviewDetail.reviewScore.ratingOverAll.percent = 90;
-        } else {
-        }
-      }
     }
   }
 };

@@ -1,90 +1,113 @@
 <template>
   <CContainer class="min-vh-100">
-    <CRow class="w-100 no-gutters">
-      <CCol sm="6" class="text-center text-sm-left">
-        <h1 class="mr-sm-4">BEAUTY TIPS MANAGEMENT</h1>
+    <CRow class="no-gutters px-3 px-sm-0">
+      <CCol cols="6">
+        <h1 class="mr-sm-4 header">BEAUTY TIPS</h1>
       </CCol>
-      <CCol sm="6" class="text-center text-sm-right">
-        <b-dropdown id="dropdown-form" right ref="dropdown" class="m-2 btn-filter" no-flip="">
-          <template v-slot:button-content>
-            <font-awesome-icon icon="filter" class="mr-2" />FILTER
-          </template>
-
-          <div>
-            <p class="font-weight-bold mb-2">Highlight</p>
-            <div class="form-check">
-              <input
-                class="form-check-input"
-                v-model="isHighlight"
-                type="checkbox"
-                id="highlightCb"
-              />
-              <label class="form-check-label" for="highlightCb">Show only highlight</label>
-            </div>
-          </div>
-
-          <div>
-            <p class="font-weight-bold mt-3 mb-2">Status</p>
-          </div>
-
-          <div class="form-check mb-2">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              value
-              id="all"
-              :checked="checkAll"
-              @click="checkAllSelect()"
-              v-model="selectAllCb"
-            />
-            <label class="form-check-label" for="all">All</label>
-          </div>
-          <div class="row">
-            <div class="col-sm-6">
-              <div class="form-check">
-                <input
-                  class="form-check-input"
-                  v-model="filter.status"
-                  type="checkbox"
-                  value="1"
-                  id="status1"
-                  @change="checkStatusLength"
-                />
-                <label class="form-check-label" for="status1">Active</label>
-              </div>
-            </div>
-            <div class="col-sm-6">
-              <div class="form-check mt-2 mt-sm-0">
-                <input
-                  class="form-check-input"
-                  v-model="filter.status"
-                  type="checkbox"
-                  value="0"
-                  id="status2"
-                  @change="checkStatusLength"
-                />
-                <label class="form-check-label" for="status2">Inactive</label>
-              </div>
-            </div>
-          </div>
-          <div class="text-center mt-3">
-            <button type="button" class="btn btn-primary button" @click="getDataByStatus()">Submit</button>
-          </div>
-        </b-dropdown>
+      <CCol cols="6" class="text-right">
+        <b-button v-b-toggle.sidebar-1 class="mr-2 btn-filter">
+          <font-awesome-icon icon="filter" title="filter-btn" class="text-white mr-0 mr-sm-1" />
+          <span class="d-none d-sm-inline">FILTER</span>
+        </b-button>
         <router-link to="/beautytips/details/0">
-          <button type="button" class="btn btn-success button">CREATE NEW</button>
+          <button type="button" class="btn btn-success button btn-mobile">
+            <font-awesome-icon icon="plus" class="text-white d-sm-none" />
+            <span class="d-none d-sm-block">CREATE NEW</span>
+          </button>
         </router-link>
       </CCol>
     </CRow>
-    <div class="bg-white-border px-4 px-sm-5 py-4 mt-4">
+    <b-sidebar
+      id="sidebar-1"
+      title="FILTER"
+      backdrop
+      shadow
+      backdrop-variant="dark"
+      right
+      ref="filterSidebar"
+    >
+      <div class="px-3 py-2">
+        <div>
+          <p class="font-weight-bold mb-2">Highlight</p>
+          <div class="form-check">
+            <input class="form-check-input" v-model="isHighlight" type="checkbox" id="highlightCb" />
+            <label class="form-check-label" for="highlightCb">Show only highlight</label>
+          </div>
+        </div>
+
+        <div>
+          <p class="font-weight-bold mt-3 mb-2">Status</p>
+        </div>
+
+        <div class="form-check mb-2">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            value
+            id="all"
+            :checked="checkAll"
+            @click="checkAllSelect()"
+            v-model="selectAllCb"
+          />
+          <label class="form-check-label" for="all">All</label>
+        </div>
+        <div class="row">
+          <div class="col-6">
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                v-model="filter.status"
+                type="checkbox"
+                value="1"
+                id="status1"
+                @change="checkStatusLength"
+              />
+              <label class="form-check-label" for="status1">Active</label>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                v-model="filter.status"
+                type="checkbox"
+                value="0"
+                id="status2"
+                @change="checkStatusLength"
+              />
+              <label class="form-check-label" for="status2">Inactive</label>
+            </div>
+          </div>
+        </div>
+
+        <b-row class="no-gutters">
+          <b-col>
+            <div class="my-3">
+              <p class="font-weight-bold mb-2">Sort By</p>
+            </div>
+
+            <b-form-select v-model="selected" :options="options" class="sortByDropdown"></b-form-select>
+          </b-col>
+        </b-row>
+
+        <div class="text-center mt-4">
+          <button
+            type="button"
+            class="btn bg-main-color text-white button"
+            @click="getDataByStatus"
+          >Submit</button>
+        </div>
+      </div>
+    </b-sidebar>
+    <div class="bg-white-border px-4 px-sm-5 pb-3 mt-3">
       <b-row class="no-gutters mt-3">
         <b-col lg="6">
           <b-input-group class="panel-input-serach">
             <b-form-input
               class="input-serach"
               placeholder="Beauty Tips Name"
-              @keyup="handleSearch"
               v-model="filter.search"
+              @keyup="handleSearch"
             ></b-form-input>
             <b-input-group-prepend>
               <span class="icon-input m-auto pr-2">
@@ -93,20 +116,9 @@
             </b-input-group-prepend>
           </b-input-group>
         </b-col>
-        <b-col lg="6" class="text-center text-sm-right">
-          <div class="float-sm-left p-rt-5 px-0 px-lg-3 py-3 py-lg-0">
-            <p class="font-weight-bold mb-1 text-body text-left">Sort By</p>
-            <b-form-select
-              v-model="selected"
-              :options="options"
-              class="sortByDropdown"
-              @change="getList"
-            ></b-form-select>
-          </div>
-        </b-col>
       </b-row>
-      <b-row>
-        <b-col class="mt-4">
+      <b-row class="mt-3">
+        <b-col>
           <b-table
             responsive
             striped
@@ -122,7 +134,7 @@
                 v-bind:style="{ 'background-image': 'url(' + data.item.imageUrl + ')' }"
               ></div>
             </template>
-             <template v-slot:cell(name)="data">
+            <template v-slot:cell(name)="data">
               <p class="m-0 font-weight-bold">{{data.item.name}}</p>
               <p class="m-0">{{data.item.shortDescription}}</p>
             </template>
@@ -145,7 +157,7 @@
               <div class="d-flex justify-content-center">
                 <router-link :to="'/beautytips/details/'+data.item.id">
                   <b-button variant="link" class="text-warning px-1 py-0">
-                    <font-awesome-icon icon="pencil-alt" title="Edit"/>
+                    <font-awesome-icon icon="pencil-alt" title="Edit" />
                   </b-button>
                 </router-link>
                 <b-button
@@ -153,7 +165,7 @@
                   class="text-danger px-1 py-0"
                   @click="deleteData(data.item.id)"
                 >
-                  <font-awesome-icon icon="trash-alt" title="Delete"/>
+                  <font-awesome-icon icon="trash-alt" title="Delete" />
                 </b-button>
               </div>
             </template>
@@ -179,7 +191,7 @@
             @change="hanndleChangePerpage"
             v-model="filter.perpage"
             :options="pageOptions"
-          ></b-form-select> 
+          ></b-form-select>
         </b-col>
       </b-row>
     </div>
@@ -296,7 +308,7 @@ export default {
       this.getList();
     },
     getDataByStatus() {
-      this.$refs.dropdown.hide(true);
+      this.$refs.filterSidebar.hide();
       this.getList();
     },
     hanndleChangePerpage(value) {

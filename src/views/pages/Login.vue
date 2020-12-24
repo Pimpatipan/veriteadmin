@@ -119,7 +119,7 @@ export default {
           this.form.email,
           60 * 60 * 24 * 30
         );
-        window.location.href = "/order";
+        window.location.href = "/dashboard";
       } else {
         this.error = data.message;
       }

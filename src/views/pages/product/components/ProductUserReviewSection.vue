@@ -81,71 +81,76 @@
             />
           </b-col>
           <b-col sm="4" class="text-right">
-            <b-dropdown
-              id="dropdown-form"
-              right
-              ref="dropdown"
-              class="btn-filter mb-4 mb-sm-0"
-              no-flip
-            >
-              <template v-slot:button-content>
-                <font-awesome-icon icon="filter" class="mr-2" />FILTER
-              </template>
-
-              <div>
-                <p class="font-weight-bold mb-2">Status</p>
-              </div>
-
-              <div class="form-check mb-2">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  value
-                  id="allUserReview"
-                  :checked="checkAllUserReview"
-                  @click="checkAllSelectUserReview()"
-                  v-model="selectAllCbUserReview"
-                />
-                <label class="form-check-label" for="allUserReview">All</label>
-              </div>
-              <div class="row">
-                <div class="col-sm-6">
-                  <div class="form-check">
-                    <input
-                      class="form-check-input"
-                      v-model="filterUserReview.status"
-                      type="checkbox"
-                      value="1"
-                      id="review1"
-                      @change="checkUserReviewStatusLength"
-                    />
-                    <label class="form-check-label" for="review1">Reviewed</label>
-                  </div>
-                </div>
-                <div class="col-sm-6 mt-2 mt-sm-0">
-                  <div class="form-check">
-                    <input
-                      class="form-check-input"
-                      v-model="filterUserReview.status"
-                      type="checkbox"
-                      value="0"
-                      id="review2"
-                      @change="checkUserReviewStatusLength"
-                    />
-                    <label class="form-check-label" for="review2">Pending Review</label>
-                  </div>
-                </div>
-              </div>
-              <div class="text-center mt-3">
-                <button
-                  type="button"
-                  class="btn btn-primary button"
-                  @click="getDataByUserReviewStatus()"
-                >Submit</button>
-              </div>
-            </b-dropdown>
+            <b-button v-b-toggle.sidebar-1 class="btn-filter mb-3">
+              <font-awesome-icon icon="filter" title="filter-btn" class="text-white mr-0 mr-sm-1" />
+              <span class="d-none d-sm-inline">FILTER</span>
+            </b-button>
           </b-col>
         </b-row>
+
+        <b-sidebar
+          id="sidebar-1"
+          title="FILTER"
+          backdrop
+          shadow
+          backdrop-variant="dark"
+          right
+          ref="filterSidebar"
+        >
+          <div class="px-3 py-2">
+            <div>
+              <p class="font-weight-bold mb-2">Status</p>
+            </div>
+
+            <div class="form-check mb-2">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                value
+                id="allUserReview"
+                :checked="checkAllUserReview"
+                @click="checkAllSelectUserReview()"
+                v-model="selectAllCbUserReview"
+              />
+              <label class="form-check-label" for="allUserReview">All</label>
+            </div>
+            <div class="row">
+              <div class="col-sm-6">
+                <div class="form-check">
+                  <input
+                    class="form-check-input"
+                    v-model="filterUserReview.status"
+                    type="checkbox"
+                    value="1"
+                    id="review1"
+                    @change="checkUserReviewStatusLength"
+                  />
+                  <label class="form-check-label" for="review1">Reviewed</label>
+                </div>
+              </div>
+              <div class="col-sm-6 mt-2 mt-sm-0">
+                <div class="form-check">
+                  <input
+                    class="form-check-input"
+                    v-model="filterUserReview.status"
+                    type="checkbox"
+                    value="0"
+                    id="review2"
+                    @change="checkUserReviewStatusLength"
+                  />
+                  <label class="form-check-label" for="review2">Pending Review</label>
+                </div>
+              </div>
+            </div>
+            <div class="text-center mt-3">
+              <button
+                type="button"
+                class="btn bg-main-color text-white button"
+                @click="getDataByUserReviewStatus()"
+              >Submit</button>
+            </div>
+          </div>
+        </b-sidebar>
 
         <div>
           <b-table
@@ -362,7 +367,7 @@ export default {
   name: "ProductUserReview",
   components: {
     InputSelect,
-    ProgressRating,
+    ProgressRating
   },
   data() {
     return {
@@ -371,12 +376,10 @@ export default {
       previewImg: "",
       productid: 0,
       i: 0,
-      languageList: [],
       categorySelectList: {},
       types: [],
       items: [],
       images: "",
-      languageActive: 1,
       isBusy: false,
       isBusyUserReview: false,
       isEdit: false,
@@ -545,7 +548,7 @@ export default {
       this.getUserReview();
     },
     getDataByUserReviewStatus() {
-      this.$refs.dropdown.hide(true);
+      this.$refs.filterSidebar.hide(true);
       this.getUserReview();
     },
     checkUserReviewStatusLength() {

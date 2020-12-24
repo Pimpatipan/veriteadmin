@@ -4,26 +4,28 @@
       <b-container class="container-box">
         <b-row class="no-gutters">
           <b-col>
-            <h1 class="font-weight-bold text-uppercase">Email Notification</h1>
+            <h1 class="font-weight-bold text-uppercase">Email</h1>
           </b-col>
         </b-row>
 
         <b-row class="no-gutters bg-white-border mt-4">
-          <b-col class="px-4 px-sm-5 py-4" v-if="isLoadingData">
+          <b-col class="px-4 px-sm-5 py-4 vh-100" v-if="isLoadingData">
             <img src="/img/loading.svg" class="loading" alt="loading" />
           </b-col>
 
           <b-col class="px-4 px-sm-5 py-4" v-else>
             <b-row>
               <b-col>
-                <InputTextArea
+                <TextEditor
                   class="mb-4"
                   textFloat="Footer"
-                  placeholder="Footer"
-                  type="text"
-                  name="name"
+                  :rows="8"
+                  name="footer"
+                  placeholder="Type something..."
                   isRequired
-                  rows="8"
+                  :value="form.footer"
+                  :v="$v.form.footer"
+                  @onDataChange="(val) => form.footer = val"
                 />
               </b-col>
             </b-row>
@@ -57,13 +59,14 @@
 </template>
 
 <script>
-import InputTextArea from "@/components/inputs/InputTextArea";
+import TextEditor from "@/components/inputs/TextEditor";
 import ModalAlert from "@/components/ModalAlert";
+import { required } from "vuelidate/lib/validators";
 
 export default {
   name: "EmailFooter",
   components: {
-    InputTextArea,
+    TextEditor,
     ModalAlert
   },
   data() {
@@ -72,11 +75,19 @@ export default {
       isLoadingData: false,
       imgModal: null,
       msgModal: null,
-      modalAlertShow: false
+      modalAlertShow: false,
+      form: {
+        footer: ""
+      }
     };
   },
+  validations: {
+    form: {
+      footer: { required }
+    }
+  },
   created: async function() {
-    //await this.getDatas();
+    await this.getDatas();
   },
   methods: {
     isNumber: function(evt) {
@@ -96,7 +107,7 @@ export default {
 
       let data = await this.$callApi(
         "get",
-        `${this.$baseUrl}/api/skinConsultWeb`,
+        `${this.$baseUrl}/api/Configuration/footer`,
         null,
         this.$headers,
         null
@@ -106,17 +117,11 @@ export default {
         this.form = data.detail;
         this.isLoadingData = false;
         this.$v.form.$reset();
-
-        this.showPreview = this.form.skinConsultWeb.imageUrl;
       }
     },
     checkForm: async function(flag) {
-      if (this.form.skinConsultWeb.isSameLanguage) {
-        await this.useSameLanguage();
-      }
       this.$v.form.$touch();
       if (this.$v.form.$error) {
-        await this.checkValidateTranslationList();
         return;
       }
       this.modalAlertShow = false;
@@ -128,7 +133,7 @@ export default {
 
       let data = await this.$callApi(
         "post",
-        `${this.$baseUrl}/api/skinConsultWeb/save`,
+        `${this.$baseUrl}/api/Configuration/saveFooter`,
         null,
         this.$headers,
         this.form

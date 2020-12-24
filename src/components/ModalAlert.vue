@@ -13,12 +13,12 @@
         <!-- <button type="button" aria-label="Close" class="close" @click="hideModal">×</button> -->
       </div>
       <div class="text-center">
-        <img :src="img" alt="success" class="mb-3" />
-        <p class="text-msg" v-if="msg">{{ msg }}</p>
+        <img :src="img" alt="success" class="mb-3 image" />
+        <p class="text-msg nobreak" v-if="msg">{{ msg }}</p>
         <p class="text-text" v-if="text">{{ text }}</p>
         <p class="text-sub" v-if="subText">{{ subText }}</p>
       </div>
-      <div class="text-center">
+      <div class="text-center" v-if="!hideClose">
         <b-button class="btn btn-danger" @click="handleCloseModal">Close</b-button>
       </div>
     </b-modal>
@@ -45,6 +45,10 @@ export default {
       type: Boolean
     },
     isSuccess: {
+      required: false,
+      type: Boolean
+    },
+    hideClose: {
       required: false,
       type: Boolean
     },
@@ -81,7 +85,7 @@ export default {
 }
 .text-msg {
   font-family: "Kanit-SemiBold";
-  font-size: 2rem;
+  font-size: 1.75rem;
   color: #4a4a4a;
 }
 .text-text {
@@ -96,5 +100,8 @@ export default {
 .modal-body {
   margin: auto;
   text-align: center;
+}
+.image {
+  width: 150px;
 }
 </style>

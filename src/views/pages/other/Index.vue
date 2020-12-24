@@ -1,76 +1,88 @@
 <template>
   <CContainer class="min-vh-100">
-    <CRow class="w-100 no-gutters">
-      <CCol sm="6" class="text-center text-sm-left">
-        <h1 class="mr-sm-4">OTHER PAGE MANAGEMENT</h1>
+    <CRow class="no-gutters px-3 px-sm-0">
+      <CCol cols="6">
+        <h1 class="mr-sm-4 header">OTHER PAGE</h1>
       </CCol>
-      <CCol sm="6" class="text-center text-sm-right">
-        <b-dropdown id="dropdown-form" right ref="dropdown" class="m-2 btn-filter" no-flip>
-          <template v-slot:button-content>
-            <font-awesome-icon icon="filter" class="mr-2" />FILTER
-          </template>
-
-          <div>
-            <p class="font-weight-bold mb-2">Status</p>
-          </div>
-
-          <div class="form-check mb-2">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              value
-              id="all"
-              :checked="checkAll"
-              @click="checkAllSelect()"
-              v-model="selectAllCb"
-            />
-            <label class="form-check-label" for="all">All</label>
-          </div>
-          <div class="row">
-            <div class="col-sm-6">
-              <div class="form-check">
-                <input
-                  class="form-check-input"
-                  v-model="filter.status"
-                  type="checkbox"
-                  value="1"
-                  id="status1"
-                  @change="checkStatusLength"
-                />
-                <label class="form-check-label" for="status1">Active</label>
-              </div>
-            </div>
-            <div class="col-sm-6">
-              <div class="form-check mt-2 mt-sm-0">
-                <input
-                  class="form-check-input"
-                  v-model="filter.status"
-                  type="checkbox"
-                  value="0"
-                  id="status2"
-                  @change="checkStatusLength"
-                />
-                <label class="form-check-label" for="status2">Inactive</label>
-              </div>
-            </div>
-          </div>
-          <div class="text-center mt-3">
-            <button type="button" class="btn btn-primary button" @click="getDataByStatus()">Submit</button>
-          </div>
-        </b-dropdown>
-        <router-link to="/other/details/0">
-          <button type="button" class="btn btn-success button">CREATE NEW</button>
-        </router-link>
+      <CCol cols="6" class="text-right">
+        <b-button v-b-toggle.sidebar-1 class="mr-2 btn-filter">
+          <font-awesome-icon icon="filter" title="filter-btn" class="text-white mr-0 mr-sm-1" />
+          <span class="d-none d-sm-inline">FILTER</span>
+        </b-button>
       </CCol>
     </CRow>
-    <div class="bg-white-border px-4 px-sm-5 py-4 mt-4">
+    <b-sidebar
+      id="sidebar-1"
+      title="FILTER"
+      backdrop
+      shadow
+      backdrop-variant="dark"
+      right
+      ref="filterSidebar"
+    >
+      <div class="px-3 py-2">
+        <div>
+          <p class="font-weight-bold mb-2">Status</p>
+        </div>
+
+        <div class="form-check mb-2">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            value
+            id="all"
+            :checked="checkAll"
+            @click="checkAllSelect()"
+            v-model="selectAllCb"
+          />
+          <label class="form-check-label" for="all">All</label>
+        </div>
+        <div class="row">
+          <div class="col-6">
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                v-model="filter.status"
+                type="checkbox"
+                value="1"
+                id="status1"
+                @change="checkStatusLength"
+              />
+              <label class="form-check-label" for="status1">Active</label>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                v-model="filter.status"
+                type="checkbox"
+                value="0"
+                id="status2"
+                @change="checkStatusLength"
+              />
+              <label class="form-check-label" for="status2">Inactive</label>
+            </div>
+          </div>
+        </div>
+        
+        <div class="text-center mt-3">
+          <button
+            type="button"
+            class="btn bg-main-color text-white button"
+            @click="getDataByStatus"
+          >Submit</button>
+        </div>
+      </div>
+    </b-sidebar>
+    <div class="bg-white-border px-4 px-sm-5 pb-3 mt-3">
       <b-row class="no-gutters mt-3">
         <b-col lg="6">
           <b-input-group class="panel-input-serach">
             <b-form-input
               class="input-serach"
-              placeholder="Name"
               @keyup="handleSearch"
+              placeholder="Name"
               v-model="filter.search"
             ></b-form-input>
             <b-input-group-prepend>
@@ -80,10 +92,9 @@
             </b-input-group-prepend>
           </b-input-group>
         </b-col>
-        <b-col lg="6" class="text-center text-sm-right"></b-col>
       </b-row>
-      <b-row>
-        <b-col class="mt-4 w-100">
+      <b-row class="mt-3">
+        <b-col>
           <b-table
             responsive
             striped
@@ -107,13 +118,13 @@
                     <font-awesome-icon icon="pencil-alt" title="Edit" />
                   </b-button>
                 </router-link>
-                <b-button
+                <!-- <b-button
                   variant="link"
                   class="text-danger px-1 py-0"
                   @click="deleteData(data.item.id)"
                 >
                   <font-awesome-icon icon="trash-alt" title="Delete" />
-                </b-button>
+                </b-button>-->
               </div>
             </template>
             <template v-slot:table-busy>
@@ -231,7 +242,7 @@ export default {
       this.getList();
     },
     getDataByStatus() {
-      this.$refs.dropdown.hide(true);
+      this.$refs.filterSidebar.hide(true);
       this.getList();
     },
     checkStatusLength() {

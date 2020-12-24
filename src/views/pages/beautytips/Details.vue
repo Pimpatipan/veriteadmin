@@ -9,7 +9,7 @@
         </b-row>
 
         <b-row class="no-gutters bg-white-border mt-4">
-          <b-col class="px-4 px-sm-5 py-4" v-if="isLoadingData">
+          <b-col class="px-4 px-sm-5 py-4 vh-100" v-if="isLoadingData">
             <img src="/img/loading.svg" class="loading" alt="loading" />
           </b-col>
           <b-col class="px-4 px-sm-5 py-4" v-else>
@@ -90,7 +90,49 @@
                   </b-col>
                 </b-row>
               </div>
+            </div>
 
+            <b-row class="mb-3">
+              <b-col md="6">
+                <div class="position-relative">
+                  <InputText
+                    textFloat="URL Key"
+                    placeholder="URL Key"
+                    type="text"
+                    name="urlkey"
+                    isRequired
+                    v-model="form.blog.urlKey"
+                    :isValidate="$v.form.blog.urlKey.$error"
+                    :v="$v.form.blog.urlKey"
+                    @onKeyup="onUrlkeyChange"
+                  />
+                  <!-- <a
+                    :href="'http://verite.dosetech.co/beautytip/'+form.blog.urlKey"
+                    target="_blank"
+                    class="view-txt"
+                    v-if="id != 0"
+                  >View</a> -->
+                  <a
+                    :href="'https://www.verite.co.th/beautytip/'+form.blog.urlKey"
+                    target="_blank"
+                    class="view-txt"
+                    v-if="id != 0"
+                  >View</a>
+                </div>
+              </b-col>
+              <b-col md="6">
+                <InputText
+                  textFloat="Sort Order"
+                  placeholder="Sort Order"
+                  type="text"
+                  name="sortorder"
+                  v-model="form.blog.sortOrder"
+                  @onKeypress="isNumber($event)"
+                />
+              </b-col>
+            </b-row>
+
+            <div v-for="(item, index) in form.blogTranslationList" v-bind:key="index">
               <div v-bind:class="[ languageActive == item.languageId ? '' : 'd-none' ]">
                 <b-row>
                   <b-col>
@@ -115,7 +157,9 @@
                 <div
                   class="preview-box"
                   v-bind:style="{ 'background-image': 'url(' + showPreview + ')' }"
-                ></div>
+                >
+                  <img src="/img/loading.svg" class="loading" alt="loading" v-if="isLoadingImage" />
+                </div>
               </b-col>
               <b-col md="6">
                 <UploadFile
@@ -146,32 +190,6 @@
                     />
                   </div>
                 </div>
-              </b-col>
-            </b-row>
-
-            <b-row>
-              <b-col md="6">
-                <InputText
-                  textFloat="URL Key"
-                  placeholder="URL Key"
-                  type="text"
-                  name="urlkey"
-                  isRequired
-                  v-model="form.blog.urlKey"
-                  :isValidate="$v.form.blog.urlKey.$error"
-                  :v="$v.form.blog.urlKey"
-                  @onKeyup="onUrlkeyChange"
-                />
-              </b-col>
-              <b-col md="6">
-                <InputText
-                  textFloat="Sort Order"
-                  placeholder="Sort Order"
-                  type="text"
-                  name="sortorder"
-                  v-model="form.blog.sortOrder"
-                  @onKeypress="isNumber($event)"
-                />
               </b-col>
             </b-row>
 
@@ -218,7 +236,6 @@
                   class="btn btn-success btn-details-set ml-md-2 text-uppercase"
                   @click="checkForm(0)"
                   :disabled="isDisable"
-                  v-if="isEdit"
                 >Save</button>
                 <button
                   type="button"
@@ -273,6 +290,8 @@ export default {
       hasSameLanguage: this.value,
       isEdit: false,
       isLoadingData: false,
+      isLoadingImage: false,
+      images: "",
       isDisable: false,
       isSuccess: false,
       imgModal: null,
@@ -284,6 +303,7 @@ export default {
       modalAlertShow: false,
       dataForAlert: null,
       id: this.$route.params.id,
+      existId: "",
       form: {
         blog: {
           id: 0,
@@ -363,7 +383,10 @@ export default {
         if (this.id > 0) {
           this.getDatas();
         } else {
-          window.location.href = "/beautytips";
+          this.form.blog.id = this.existId;
+          this.id = this.existId;
+          this.isEdit = true;
+          this.$router.push({ path: `/beautytips/details/${this.existId}` });
         }
       }
     },
@@ -404,12 +427,23 @@ export default {
         this.form = data.detail;
         this.isLoadingData = false;
         this.$v.form.$reset();
-        
+
         if (this.form.blog.id > 0) {
           this.isEdit = true;
           this.isInit = true;
           this.form.imageBase64 = "";
           this.showPreview = this.form.blog.imageUrl;
+        }
+
+        if (this.form.isSameLanguage) {
+          this.imageLogoLang = "";
+        } else {
+          var index = this.languageList
+            .map(function(x) {
+              return x.id;
+            })
+            .indexOf(this.languageActive);
+          this.imageLogoLang = this.languageList[index].imageUrl;
         }
       }
     },
@@ -418,18 +452,39 @@ export default {
       this.imageLogoLang = this.languageList[index].imageUrl;
     },
     onImageChange(img) {
-      this.form.blog.imageUrl = img.name;
+      this.isLoadingImage = true;
+      this.isDisable = true;
       var reader = new FileReader();
       reader.readAsDataURL(img);
-      reader.onload = () => {
-        this.showPreview = reader.result;
-        this.form.imageBase64 = reader.result;
+      reader.onload = async () => {
+        this.images = await this.saveImagetoDb(reader.result);
+        this.isLoadingImage = false;
+        this.isDisable = false;
+        this.showPreview = this.images;
+        this.form.blog.imageUrl = this.images;
       };
     },
     deleteImage(value) {
       this.form.blog.imageUrl = null;
       this.form.imageBase64 = null;
       this.showPreview = null;
+    },
+    saveImagetoDb: async function(img) {
+      var imgData = {
+        base64: img
+      };
+
+      let data = await this.$callApi(
+        "post",
+        `${this.$baseUrl}/api/image/save`,
+        null,
+        this.$headers,
+        imgData
+      );
+
+      if (data.result == 1) {
+        return data.detail.url;
+      }
     },
     setMetaTitleandKeyword: function(name, index) {
       this.form.blogTranslationList[index].metaTitle = name;
@@ -471,6 +526,7 @@ export default {
         this.imgModal = "/img/icon-check-green.png";
         this.msgModal = data.message;
         this.isSuccess = true;
+         this.existId = data.detail.id;
       } else {
         this.imgModal = "/img/icon-unsuccess.png";
         this.msgModal = data.detail[0];
@@ -482,6 +538,7 @@ export default {
     useSameLanguage: async function() {
       Vue.nextTick(() => {
         if (this.form.isSameLanguage) {
+          this.imageLogoLang = "";
           this.form.blog.mainLanguageId = this.languageActive;
           let data = this.form.blogTranslationList.filter(
             val => val.languageId == this.form.blog.mainLanguageId
@@ -510,6 +567,13 @@ export default {
             }
           }
         } else {
+          var index = this.languageList
+            .map(function(x) {
+              return x.id;
+            })
+            .indexOf(this.languageActive);
+          this.imageLogoLang = this.languageList[index].imageUrl;
+
           let data = this.form.blogTranslationList.filter(
             val => val.languageId != this.form.blog.mainLanguageId
           );
@@ -562,3 +626,14 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+.view-txt {
+  position: absolute;
+  right: 0;
+  top: 0;
+  text-decoration: underline;
+  color: #707070;
+  z-index: 1;
+}
+</style>
